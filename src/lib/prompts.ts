@@ -1,7 +1,14 @@
 /**
- * Shared prompt and tool definitions for story generation.
+ * Shared prompt, tool definitions, and model constants for story generation.
  * Used by both /api/history (standalone) and /api/pipeline (streaming).
+ *
+ * IMPORTANT: When Anthropic retires a model, update STORY_MODEL here.
+ * Check model status: https://platform.claude.com/docs/en/about-claude/model-deprecations
  */
+
+// Single source of truth for the Claude model used across all story endpoints.
+// claude-3-5-haiku-20241022 was retired Feb 19, 2026 → replaced with claude-haiku-4-5-20251001
+export const STORY_MODEL = 'claude-haiku-4-5-20251001';
 
 export const HISTORY_SYSTEM_PROMPT = `You are a creative nonfiction storyteller specializing in vivid historical narratives. Your task is to write immersive 150–200 word vignettes about real historical events.
 

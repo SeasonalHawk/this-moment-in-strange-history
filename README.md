@@ -17,7 +17,7 @@ An AI-powered creative nonfiction storytelling app with voice narration. Pick an
 |-------|-----------|
 | Framework | Next.js 16 (App Router), React 19, TypeScript |
 | Styling | Tailwind CSS 4 |
-| AI Storytelling | Anthropic Claude API (`claude-3-5-haiku-20241022`) |
+| AI Storytelling | Anthropic Claude API (`claude-haiku-4-5-20251001`) |
 | Voice Narration | ElevenLabs TTS API (Adam voice, Flash v2.5) |
 | Background Music | ElevenLabs Sound Effects API (dreamscape piano loop) |
 | Calendar | react-day-picker, date-fns |
@@ -193,7 +193,7 @@ Code quality pass — removed dead code, fixed bugs, optimized performance.
 
 - **Unified `/api/pipeline` endpoint** — single NDJSON streaming request handles both story generation and TTS audio, eliminating client round-trip between phases
 - **Server-side overlap** — TTS generation fires immediately after story completes on the server, without waiting for story data to reach the client first
-- **Claude Haiku model** (`claude-3-5-haiku-20241022`) — ~3-5x faster story generation vs Sonnet
+- **Claude Haiku model** (`claude-haiku-4-5-20251001`) — ~3-5x faster story generation vs Sonnet
 - **ElevenLabs Flash model** (`eleven_flash_v2_5`) — fastest available TTS model, lowest latency
 - **Shorter vignettes** (150-200 words vs 200-300) — less text = faster TTS generation
 - **NDJSON streaming** — client reads story and audio as separate lines; story displays immediately while TTS still generates
@@ -204,7 +204,7 @@ Code quality pass — removed dead code, fixed bugs, optimized performance.
 - Standalone `/api/history` and `/api/tts` endpoints kept as fallbacks
 - Previous pipeline: Story ~13s (Sonnet) + Audio ~18.5s (Turbo) = ~31.4s sequential
 - Target pipeline: Story ~3-4s (Haiku) + Audio ~5-8s (Flash) = ~8-12s with server overlap
-- 92 tests passing
+- 94 tests passing
 
 ## Environment Variables
 
@@ -226,7 +226,7 @@ Code quality pass — removed dead code, fixed bugs, optimized performance.
 ## Testing
 
 ```bash
-npm test          # Run all 92 tests
+npm test          # Run all 94 tests
 npm run test:watch # Watch mode
 ```
 
@@ -238,7 +238,7 @@ npm run test:watch # Watch mode
 | LoadingState.test.tsx | 5 | Loading text, skeleton lines, custom messages, elapsed timer |
 | genres.test.ts | 5 | Genre list integrity, random selection |
 | ttsRoute.test.ts | 16 | TTS validation, voice config (Flash v2.5), voice settings |
-| pipelineConfig.test.ts | 14 | Pipeline models (Haiku + Flash), shared prompt, tool schema |
+| pipelineConfig.test.ts | 16 | Pipeline models (Haiku 4.5 + Flash), retired model guard, shared prompt, tool schema |
 
 ## The Story Behind the Build
 

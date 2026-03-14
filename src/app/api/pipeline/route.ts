@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { validateRequest, buildUserMessage, monthName } from '@/lib/validation';
 import { rateLimit } from '@/lib/rateLimit';
-import { HISTORY_SYSTEM_PROMPT, VIGNETTE_TOOL } from '@/lib/prompts';
+import { HISTORY_SYSTEM_PROMPT, VIGNETTE_TOOL, STORY_MODEL } from '@/lib/prompts';
 
 const ELEVENLABS_VOICE_ID = 'pNInz6obpgDQGcFmaJgB'; // Adam
 const ELEVENLABS_MODEL = 'eleven_flash_v2_5'; // Fastest English model
@@ -51,10 +51,10 @@ export async function POST(request: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        // ── Phase 1: Generate story with Claude Haiku ──────────────
+        // ── Phase 1: Generate story with Claude Haiku 4.5 ──────────────
         const client = new Anthropic({ apiKey: anthropicKey });
         const message = await client.messages.create({
-          model: 'claude-3-5-haiku-20241022',
+          model: STORY_MODEL,
           max_tokens: 512,
           system: HISTORY_SYSTEM_PROMPT,
           tools: [VIGNETTE_TOOL],

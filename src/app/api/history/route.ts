@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { validateRequest, buildUserMessage } from '@/lib/validation';
 import { rateLimit } from '@/lib/rateLimit';
-import { HISTORY_SYSTEM_PROMPT, VIGNETTE_TOOL } from '@/lib/prompts';
+import { HISTORY_SYSTEM_PROMPT, VIGNETTE_TOOL, STORY_MODEL } from '@/lib/prompts';
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   try {
     const client = new Anthropic({ apiKey });
     const message = await client.messages.create({
-      model: 'claude-3-5-haiku-20241022',
+      model: STORY_MODEL,
       max_tokens: 512,
       system: HISTORY_SYSTEM_PROMPT,
       tools: [VIGNETTE_TOOL],

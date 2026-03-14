@@ -1,14 +1,28 @@
 import { describe, it, expect } from 'vitest';
-import { HISTORY_SYSTEM_PROMPT, VIGNETTE_TOOL } from '@/lib/prompts';
+import { HISTORY_SYSTEM_PROMPT, VIGNETTE_TOOL, STORY_MODEL } from '@/lib/prompts';
 
 describe('Pipeline Configuration', () => {
-  // Models used in the streaming pipeline
-  const PIPELINE_STORY_MODEL = 'claude-3-5-haiku-20241022';
   const PIPELINE_TTS_MODEL = 'eleven_flash_v2_5';
   const PIPELINE_VOICE_ID = 'pNInz6obpgDQGcFmaJgB'; // Adam
 
-  it('uses Haiku model for fastest story generation', () => {
-    expect(PIPELINE_STORY_MODEL).toBe('claude-3-5-haiku-20241022');
+  it('uses an active (non-retired) Claude model for story generation', () => {
+    // claude-3-5-haiku-20241022 was retired Feb 19, 2026
+    // claude-3-haiku-20240307 was retired Feb 19, 2026
+    // If this test fails, check: https://platform.claude.com/docs/en/about-claude/model-deprecations
+    expect(STORY_MODEL).not.toBe('claude-3-5-haiku-20241022');
+    expect(STORY_MODEL).not.toBe('claude-3-haiku-20240307');
+    expect(STORY_MODEL).not.toBe('claude-3-5-haiku-latest');
+  });
+
+  it('uses Haiku 4.5 model for fastest story generation', () => {
+    expect(STORY_MODEL).toBe('claude-haiku-4-5-20251001');
+  });
+
+  it('exports STORY_MODEL as single source of truth', () => {
+    // Both /api/history and /api/pipeline import STORY_MODEL from prompts.ts
+    // This test ensures the constant exists and is a non-empty string
+    expect(typeof STORY_MODEL).toBe('string');
+    expect(STORY_MODEL.length).toBeGreaterThan(0);
   });
 
   it('uses Flash v2.5 model for fastest TTS', () => {
