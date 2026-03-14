@@ -21,7 +21,7 @@ export default function LoadingState({ message = 'Uncovering history...', startT
       setElapsed(Math.floor((Date.now() - startTime) / 100) / 10);
     };
     tick();
-    intervalRef.current = setInterval(tick, 100);
+    intervalRef.current = setInterval(tick, 250); // 4 updates/sec — smooth enough for .toFixed(1) display
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);

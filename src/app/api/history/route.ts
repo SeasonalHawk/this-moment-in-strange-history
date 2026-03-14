@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const client = new Anthropic({ apiKey });
     const message = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
+      max_tokens: 512, // 200-300 word story + metadata fits in ~400 tokens
       system: SYSTEM_PROMPT,
       tools: [{
         name: 'publish_vignette',

@@ -25,17 +25,18 @@ export function useTextToSpeech() {
   const onStartRef = useRef<(() => void) | undefined>(undefined);
   const onEndRef = useRef<(() => void) | undefined>(undefined);
 
-  function handleEnded() {
+  // Stable handler ref — avoids identity mismatch on addEventListener/removeEventListener
+  const handleEndedRef = useRef(() => {
     setPlaying(false);
-    setPaused(true); // Audio ended — can be replayed
+    setPaused(true);
     onEndRef.current?.();
-  }
+  });
 
   // Full cleanup — destroys audio element and blob (used on new date/genre)
   const cleanup = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current.removeEventListener('ended', handleEnded);
+      audioRef.current.removeEventListener('ended', handleEndedRef.current);
       audioRef.current = null;
     }
     if (urlRef.current) {
@@ -48,14 +49,13 @@ export function useTextToSpeech() {
     setHasAudio(false);
   }, []);
 
-  // Warm up audio context — call this synchronously inside a user click handler
-  // to establish the browser audio permission before any async work
+  // Warm up audio context — call synchronously inside a user click handler
+  // to establish browser audio permission before any async work
   const warmUp = useCallback(() => {
-    cleanup();
     const audio = new Audio();
-    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('ended', handleEndedRef.current);
     audioRef.current = audio;
-  }, [cleanup]);
+  }, []);
 
   // Generate audio and auto-play using the pre-warmed audio element
   const speak = useCallback(async (options: SpeakOptions) => {
@@ -83,6 +83,9 @@ export function useTextToSpeech() {
 
       const blob = await response.blob();
       blobRef.current = blob;
+
+      // Revoke previous URL if speak() is called without cleanup (defensive guard)
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
       const url = URL.createObjectURL(blob);
       urlRef.current = url;
 
@@ -90,7 +93,7 @@ export function useTextToSpeech() {
       let audio = audioRef.current;
       if (!audio) {
         audio = new Audio();
-        audio.addEventListener('ended', handleEnded);
+        audio.addEventListener('ended', handleEndedRef.current);
         audioRef.current = audio;
       }
       audio.src = url;

@@ -15,7 +15,6 @@ const defaultProps = {
   onReplay: vi.fn(),
   onDownloadAudio: vi.fn(),
   audioPlaying: false,
-  audioPaused: false,
   hasAudio: false,
   musicMuted: false,
   onToggleMusic: vi.fn(),
@@ -105,7 +104,7 @@ describe('StoryCard', () => {
   });
 
   it('shows Play button when audio is paused', () => {
-    render(<StoryCard {...defaultProps} hasAudio={true} audioPlaying={false} audioPaused={true} />);
+    render(<StoryCard {...defaultProps} hasAudio={true} audioPlaying={false} />);
     expect(screen.getByText('Play')).toBeInTheDocument();
   });
 

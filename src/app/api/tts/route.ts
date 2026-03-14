@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit } from '@/lib/rateLimit';
 
 const ELEVENLABS_VOICE_ID = 'pNInz6obpgDQGcFmaJgB'; // Adam — deep, authoritative male narrator
-const ELEVENLABS_MODEL = 'eleven_multilingual_v2';
+const ELEVENLABS_MODEL = 'eleven_turbo_v2_5'; // Faster English model (~50% lower latency)
 const BRANDING_OUTRO = 'This audio is created by This Moment in History. Copyright 2026.';
 
 export async function POST(request: NextRequest) {
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
           voice_settings: {
             stability: 0.5,
             similarity_boost: 0.75,
-            style: 0.4,
+            style: 0, // Disabled — reduces latency, minimal audible difference for narrator voice
           },
         }),
       }

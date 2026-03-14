@@ -15,7 +15,6 @@ interface StoryCardProps {
   onReplay: () => void;
   onDownloadAudio: () => void;
   audioPlaying: boolean;
-  audioPaused: boolean;
   hasAudio: boolean;
   musicMuted: boolean;
   onToggleMusic: () => void;
@@ -26,7 +25,7 @@ export default function StoryCard({
   story, date, eventTitle, eventYear, mlaCitation,
   genre, onRandomHistory, spinning,
   onTogglePlayPause, onReplay, onDownloadAudio,
-  audioPlaying, audioPaused, hasAudio,
+  audioPlaying, hasAudio,
   musicMuted, onToggleMusic, timingLabel,
 }: StoryCardProps) {
   return (

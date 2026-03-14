@@ -15,94 +15,69 @@ interface PipelineTiming {
   audioMs: number | null;
 }
 
+const formatMs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
+
 export default function Home() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [audioGenerating, setAudioGenerating] = useState(false);
   const [pipelineStart, setPipelineStart] = useState<number | null>(null);
   const [timing, setTiming] = useState<PipelineTiming>({ storyMs: null, audioMs: null });
   const phaseStartRef = useRef<number>(0);
 
   const { story, metadata, loading, error, activeGenre, fetchStory } = useHistoryStory();
-  const { speak, warmUp, togglePlayPause, replay, cleanup, download, playing: audioPlaying, paused: audioPaused, hasAudio } = useTextToSpeech();
+  const tts = useTextToSpeech();
   const bgMusic = useBackgroundMusic();
 
-  const generateAudioForStory = async (storyText: string, date: Date, eventTitle: string | null, eventYear: string | null) => {
-    const dateStr = format(date, 'MMMM d');
-    phaseStartRef.current = Date.now();
-    setAudioGenerating(true);
-    try {
-      await speak({
-        text: storyText,
-        eventTitle,
-        eventDate: dateStr,
-        eventYear,
-        onStart: () => bgMusic.play(),
-        onEnd: () => bgMusic.stop(),
-      });
-      const audioMs = Date.now() - phaseStartRef.current;
-      setTiming(prev => ({ ...prev, audioMs }));
-    } finally {
-      setAudioGenerating(false);
-      setPipelineStart(null);
-    }
-  };
-
-  const handleDateSelect = async (date: Date | undefined) => {
-    // Full reset — destroy audio, stop music, clear state
-    cleanup();
+  // Unified pipeline: reset → warmUp → fetch story → generate audio → auto-play
+  const runPipeline = async (date: Date, genre?: string) => {
+    // Full reset — destroy audio, stop music, clear timing
+    tts.cleanup();
     bgMusic.stop();
-    setAudioGenerating(false);
-    setTiming({ storyMs: null, audioMs: null });
-    setSelectedDate(date);
-
-    if (date) {
-      const now = Date.now();
-      setPipelineStart(now);
-      phaseStartRef.current = now;
-
-      // Warm up audio element during user click to satisfy autoplay policy
-      warmUp();
-
-      // Phase 1: "Uncovering history..." (loading=true from fetchStory)
-      const data = await fetchStory(date);
-      const storyMs = Date.now() - phaseStartRef.current;
-      setTiming(prev => ({ ...prev, storyMs }));
-      if (!data) { setPipelineStart(null); return; }
-
-      // Phase 2: "Finding our history professor..." → auto-play audio
-      await generateAudioForStory(data.story, date, data.metadata.eventTitle, data.metadata.eventYear);
-    }
-  };
-
-  const handleRandomHistory = async () => {
-    if (!selectedDate) return;
-
-    // Full reset — destroy audio, stop music, clear state
-    cleanup();
-    bgMusic.stop();
-    setAudioGenerating(false);
     setTiming({ storyMs: null, audioMs: null });
 
     const now = Date.now();
     setPipelineStart(now);
     phaseStartRef.current = now;
 
-    // Warm up audio element during user click
-    warmUp();
+    // Warm up audio element during user click to satisfy autoplay policy
+    tts.warmUp();
 
     // Phase 1: "Uncovering history..."
-    const data = await fetchStory(selectedDate, getRandomGenre());
+    const data = await fetchStory(date, genre);
     const storyMs = Date.now() - phaseStartRef.current;
     setTiming(prev => ({ ...prev, storyMs }));
     if (!data) { setPipelineStart(null); return; }
 
     // Phase 2: "Finding our history professor..." → auto-play audio
-    await generateAudioForStory(data.story, selectedDate, data.metadata.eventTitle, data.metadata.eventYear);
+    phaseStartRef.current = Date.now();
+    try {
+      await tts.speak({
+        text: data.story,
+        eventTitle: data.metadata.eventTitle,
+        eventDate: format(date, 'MMMM d'),
+        eventYear: data.metadata.eventYear,
+        onStart: () => bgMusic.play(),
+        onEnd: () => bgMusic.stop(),
+      });
+      const audioMs = Date.now() - phaseStartRef.current;
+      setTiming(prev => ({ ...prev, audioMs }));
+    } finally {
+      setPipelineStart(null);
+    }
+  };
+
+  const handleDateSelect = async (date: Date | undefined) => {
+    setSelectedDate(date);
+    if (date) await runPipeline(date);
+  };
+
+  const handleRandomHistory = async () => {
+    if (!selectedDate) return;
+    await runPipeline(selectedDate, getRandomGenre());
   };
 
   const handleTogglePlayPause = () => {
-    togglePlayPause();
-    if (audioPlaying) {
+    tts.togglePlayPause();
+    if (tts.playing) {
       bgMusic.pause();
     } else {
       bgMusic.resume();
@@ -110,12 +85,9 @@ export default function Home() {
   };
 
   const handleReplay = () => {
-    replay();
+    tts.replay();
     bgMusic.play();
   };
-
-  // Format timing for display
-  const formatMs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
 
   return (
     <div className="min-h-screen bg-stone-950 text-stone-100">
@@ -141,7 +113,7 @@ export default function Home() {
 
         {/* Story Area */}
         {loading && <LoadingState message="Uncovering history..." startTime={pipelineStart} />}
-        {audioGenerating && !loading && <LoadingState message="Finding our history professor..." startTime={pipelineStart} />}
+        {tts.loading && !loading && <LoadingState message="Finding our history professor..." startTime={pipelineStart} />}
 
         {error && (
           <div className="bg-red-900/30 border border-red-800 rounded-xl p-4 max-w-2xl mx-auto text-center">
@@ -164,17 +136,16 @@ export default function Home() {
             mlaCitation={metadata.mlaCitation}
             genre={activeGenre}
             onRandomHistory={handleRandomHistory}
-            spinning={loading || audioGenerating}
+            spinning={loading || tts.loading}
             onTogglePlayPause={handleTogglePlayPause}
             onReplay={handleReplay}
             onDownloadAudio={() => {
               const title = metadata.eventTitle || 'story';
               const safeName = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
-              download(`this-moment-in-history-${safeName}.mp3`);
+              tts.download(`this-moment-in-history-${safeName}.mp3`);
             }}
-            audioPlaying={audioPlaying}
-            audioPaused={audioPaused}
-            hasAudio={hasAudio}
+            audioPlaying={tts.playing}
+            hasAudio={tts.hasAudio}
             musicMuted={bgMusic.muted}
             onToggleMusic={bgMusic.toggleMute}
             timingLabel={
