@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }
 
-  const { month, day, spin } = result.data;
+  const { month, day, genre } = result.data;
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       }],
       tool_choice: { type: 'tool' as const, name: 'publish_vignette' },
       messages: [
-        { role: 'user', content: buildUserMessage(month, day, spin) }
+        { role: 'user', content: buildUserMessage(month, day, genre ?? undefined) }
       ]
     });
 
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
       eventYear: input.eventYear || null,
       mlaCitation: input.mlaCitation || null,
       date: { month, day },
-      spin
+      genre: genre || null
     });
   } catch (err: unknown) {
     const error = err as { status?: number; message?: string };

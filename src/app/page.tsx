@@ -8,10 +8,11 @@ import LoadingState from '@/components/LoadingState';
 import useHistoryStory from '@/hooks/useHistoryStory';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
+import { getRandomGenre } from '@/lib/genres';
 
 export default function Home() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const { story, metadata, loading, error, spinCount, fetchStory } = useHistoryStory();
+  const { story, metadata, loading, error, activeGenre, fetchStory } = useHistoryStory();
   const { speak, stop, download, loading: audioLoading, playing: audioPlaying, hasAudio } = useTextToSpeech();
   const bgMusic = useBackgroundMusic();
 
@@ -19,14 +20,14 @@ export default function Home() {
     setSelectedDate(date);
     stop(); // Stop narration (which also stops bg music via onEnd)
     if (date) {
-      fetchStory(date, 0);
+      fetchStory(date);
     }
   };
 
-  const handleSpin = () => {
+  const handleRandomHistory = () => {
     stop(); // Stop narration (which also stops bg music via onEnd)
     if (selectedDate) {
-      fetchStory(selectedDate, spinCount + 1);
+      fetchStory(selectedDate, getRandomGenre());
     }
   };
 
@@ -77,7 +78,7 @@ export default function Home() {
           <div className="bg-red-900/30 border border-red-800 rounded-xl p-4 max-w-2xl mx-auto text-center">
             <p className="text-red-400">{error}</p>
             <button
-              onClick={() => selectedDate && fetchStory(selectedDate, spinCount)}
+              onClick={() => selectedDate && fetchStory(selectedDate)}
               className="mt-2 text-sm text-red-300 underline hover:text-red-200"
             >
               Try again
@@ -92,7 +93,8 @@ export default function Home() {
             eventTitle={metadata.eventTitle}
             eventYear={metadata.eventYear}
             mlaCitation={metadata.mlaCitation}
-            onSpin={handleSpin}
+            genre={activeGenre}
+            onRandomHistory={handleRandomHistory}
             spinning={loading}
             onReadToMe={handleReadToMe}
             onStopReading={handleStopReading}

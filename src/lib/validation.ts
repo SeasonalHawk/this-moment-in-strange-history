@@ -1,9 +1,11 @@
+import { GENRES } from './genres';
+
 export function validateRequest(body: Record<string, unknown> | null) {
   if (!body || typeof body !== 'object') {
     return { valid: false as const, error: 'Request body is required' };
   }
 
-  const { month, day, spin } = body;
+  const { month, day, genre } = body;
 
   if (month === undefined || month === null) {
     return { valid: false as const, error: 'month is required' };
@@ -14,7 +16,6 @@ export function validateRequest(body: Record<string, unknown> | null) {
 
   const monthNum = Number(month);
   const dayNum = Number(day);
-  const spinNum = Number(spin ?? 0);
 
   if (!Number.isInteger(monthNum) || monthNum < 1 || monthNum > 12) {
     return { valid: false as const, error: 'month must be an integer between 1 and 12' };
@@ -22,11 +23,14 @@ export function validateRequest(body: Record<string, unknown> | null) {
   if (!Number.isInteger(dayNum) || dayNum < 1 || dayNum > 31) {
     return { valid: false as const, error: 'day must be an integer between 1 and 31' };
   }
-  if (!Number.isInteger(spinNum) || spinNum < 0 || spinNum > 50) {
-    return { valid: false as const, error: 'spin must be an integer between 0 and 50' };
+
+  // Genre is optional — validate only if provided
+  const genreStr = genre !== undefined && genre !== null ? String(genre) : null;
+  if (genreStr !== null && !(GENRES as readonly string[]).includes(genreStr)) {
+    return { valid: false as const, error: 'Invalid genre' };
   }
 
-  return { valid: true as const, data: { month: monthNum, day: dayNum, spin: spinNum } };
+  return { valid: true as const, data: { month: monthNum, day: dayNum, genre: genreStr } };
 }
 
 export function monthName(month: number) {
@@ -37,10 +41,12 @@ export function monthName(month: number) {
   return months[month - 1] || 'January';
 }
 
-export function buildUserMessage(month: number, day: number, spin: number) {
-  let spinInstruction = '';
-  if (spin > 0) {
-    spinInstruction = ` This is spin #${spin} — choose a DIFFERENT event from any previous response for this date. Dig deeper: find an obscure, surprising, or lesser-known moment from this date in history. The higher the spin number, the more unexpected and unconventional your choice should be.`;
+export function buildUserMessage(month: number, day: number, genre?: string) {
+  const base = `Write a creative nonfiction vignette about a real historical event that happened on ${monthName(month)} ${day}.`;
+
+  if (!genre) {
+    return base;
   }
-  return `Write a creative nonfiction vignette about a real historical event that happened on ${monthName(month)} ${day}.${spinInstruction}`;
+
+  return `${base} GENRE LENS: "${genre}". Find an event from this date that fits the ${genre} genre. Let this genre shape your storytelling approach: adopt the tone, pacing, and atmosphere that ${genre} content demands. Lead with the sensory details that this genre thrives on — the textures, sounds, and visceral moments that make ${genre} stories compelling. Choose the narrative angle that a ${genre} storyteller would instinctively gravitate toward. The event must still be historically accurate, but frame it through the ${genre} lens.`;
 }

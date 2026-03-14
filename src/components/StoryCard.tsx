@@ -8,7 +8,8 @@ interface StoryCardProps {
   eventTitle: string | null;
   eventYear: string | null;
   mlaCitation: string | null;
-  onSpin: () => void;
+  genre: string | null;
+  onRandomHistory: () => void;
   spinning: boolean;
   onReadToMe: () => void;
   onStopReading: () => void;
@@ -22,7 +23,7 @@ interface StoryCardProps {
 
 export default function StoryCard({
   story, date, eventTitle, eventYear, mlaCitation,
-  onSpin, spinning,
+  genre, onRandomHistory, spinning,
   onReadToMe, onStopReading, onDownloadAudio,
   audioLoading, audioPlaying, hasAudio,
   musicMuted, onToggleMusic,
@@ -112,23 +113,32 @@ export default function StoryCard({
             </button>
           )}
 
-          {/* Spin button */}
+          {/* Random History button */}
           <button
-            onClick={onSpin}
+            onClick={onRandomHistory}
             disabled={spinning}
             className="px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:bg-stone-700 disabled:text-stone-500 text-white font-medium rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center gap-2"
           >
             {spinning ? (
               <>
                 <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Spinning...
+                Discovering...
               </>
             ) : (
-              'Spin Your Luck'
+              'Random History'
             )}
           </button>
         </div>
       </div>
+
+      {/* Genre badge */}
+      {genre && (
+        <div className="mb-3">
+          <span className="inline-block px-3 py-1 bg-amber-600/20 border border-amber-600/40 text-amber-400 text-sm font-medium rounded-full">
+            {genre}
+          </span>
+        </div>
+      )}
 
       {/* Event title and year */}
       {eventTitle && (

@@ -8,7 +8,8 @@ const defaultProps = {
   eventTitle: 'The Battle of Example',
   eventYear: '1865',
   mlaCitation: 'Smith, John. History of Wars. Oxford UP, 2020.',
-  onSpin: vi.fn(),
+  genre: null as string | null,
+  onRandomHistory: vi.fn(),
   spinning: false,
   onReadToMe: vi.fn(),
   onStopReading: vi.fn(),
@@ -53,21 +54,38 @@ describe('StoryCard', () => {
     expect(screen.queryByText('Reference')).not.toBeInTheDocument();
   });
 
-  it('renders Spin Your Luck button', () => {
+  // Random History button tests
+  it('renders Random History button', () => {
     render(<StoryCard {...defaultProps} />);
-    expect(screen.getByText('Spin Your Luck')).toBeInTheDocument();
+    expect(screen.getByText('Random History')).toBeInTheDocument();
   });
 
-  it('calls onSpin when button clicked', () => {
-    const onSpin = vi.fn();
-    render(<StoryCard {...defaultProps} onSpin={onSpin} />);
-    fireEvent.click(screen.getByText('Spin Your Luck'));
-    expect(onSpin).toHaveBeenCalledOnce();
+  it('calls onRandomHistory when button clicked', () => {
+    const onRandomHistory = vi.fn();
+    render(<StoryCard {...defaultProps} onRandomHistory={onRandomHistory} />);
+    fireEvent.click(screen.getByText('Random History'));
+    expect(onRandomHistory).toHaveBeenCalledOnce();
   });
 
-  it('disables spin button and shows spinner when spinning', () => {
+  it('disables button and shows Discovering... when spinning', () => {
     render(<StoryCard {...defaultProps} spinning={true} />);
-    expect(screen.getByText('Spinning...')).toBeInTheDocument();
+    expect(screen.getByText('Discovering...')).toBeInTheDocument();
+  });
+
+  // Genre badge tests
+  it('does not render genre badge when genre is null', () => {
+    render(<StoryCard {...defaultProps} genre={null} />);
+    expect(screen.queryByText('True Crime')).not.toBeInTheDocument();
+  });
+
+  it('renders genre badge when genre is provided', () => {
+    render(<StoryCard {...defaultProps} genre="True Crime" />);
+    expect(screen.getByText('True Crime')).toBeInTheDocument();
+  });
+
+  it('renders different genre badge text', () => {
+    render(<StoryCard {...defaultProps} genre="Espionage & Spies" />);
+    expect(screen.getByText('Espionage & Spies')).toBeInTheDocument();
   });
 
   // Audio button tests

@@ -13,8 +13,8 @@ interface UseHistoryStoryReturn {
   metadata: StoryMetadata;
   loading: boolean;
   error: string | null;
-  spinCount: number;
-  fetchStory: (date: Date, spin?: number) => Promise<void>;
+  activeGenre: string | null;
+  fetchStory: (date: Date, genre?: string) => Promise<void>;
 }
 
 const emptyMetadata: StoryMetadata = { eventTitle: null, eventYear: null, mlaCitation: null };
@@ -24,12 +24,11 @@ export default function useHistoryStory(): UseHistoryStoryReturn {
   const [metadata, setMetadata] = useState<StoryMetadata>(emptyMetadata);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [spinCount, setSpinCount] = useState(0);
+  const [activeGenre, setActiveGenre] = useState<string | null>(null);
 
-  const fetchStory = useCallback(async (date: Date, spin?: number) => {
+  const fetchStory = useCallback(async (date: Date, genre?: string) => {
     const month = date.getMonth() + 1;
     const day = date.getDate();
-    const currentSpin = spin ?? 0;
 
     setLoading(true);
     setError(null);
@@ -38,7 +37,7 @@ export default function useHistoryStory(): UseHistoryStoryReturn {
       const res = await fetch('/api/history', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ month, day, spin: currentSpin }),
+        body: JSON.stringify({ month, day, ...(genre ? { genre } : {}) }),
       });
 
       if (!res.ok) {
@@ -53,16 +52,17 @@ export default function useHistoryStory(): UseHistoryStoryReturn {
         eventYear: data.eventYear || null,
         mlaCitation: data.mlaCitation || null,
       });
-      setSpinCount(currentSpin);
+      setActiveGenre(data.genre || null);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
       setError(message);
       setStory(null);
       setMetadata(emptyMetadata);
+      setActiveGenre(null);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  return { story, metadata, loading, error, spinCount, fetchStory };
+  return { story, metadata, loading, error, activeGenre, fetchStory };
 }
