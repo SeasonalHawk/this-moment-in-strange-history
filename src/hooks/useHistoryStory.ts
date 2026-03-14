@@ -14,24 +14,16 @@ interface FetchStoryResult {
   genre: string | null;
 }
 
-interface UseHistoryStoryReturn {
-  story: string | null;
-  metadata: StoryMetadata;
-  loading: boolean;
-  error: string | null;
-  activeGenre: string | null;
-  fetchStory: (date: Date, genre?: string) => Promise<FetchStoryResult | null>;
-}
-
 const emptyMetadata: StoryMetadata = { eventTitle: null, eventYear: null, mlaCitation: null };
 
-export default function useHistoryStory(): UseHistoryStoryReturn {
+export default function useHistoryStory() {
   const [story, setStory] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<StoryMetadata>(emptyMetadata);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeGenre, setActiveGenre] = useState<string | null>(null);
 
+  // Standalone fetch — calls /api/history directly (kept as fallback)
   const fetchStory = useCallback(async (date: Date, genre?: string): Promise<FetchStoryResult | null> => {
     const month = date.getMonth() + 1;
     const day = date.getDate();
@@ -77,5 +69,30 @@ export default function useHistoryStory(): UseHistoryStoryReturn {
     }
   }, []);
 
-  return { story, metadata, loading, error, activeGenre, fetchStory };
+  // Pipeline helpers — allow page.tsx to update state from streaming pipeline
+  const startLoading = useCallback(() => {
+    setLoading(true);
+    setError(null);
+  }, []);
+
+  const setResult = useCallback((data: { story: string; metadata: StoryMetadata; genre: string | null }) => {
+    setStory(data.story);
+    setMetadata(data.metadata);
+    setActiveGenre(data.genre);
+    setLoading(false);
+    setError(null);
+  }, []);
+
+  const setErrorState = useCallback((message: string) => {
+    setError(message);
+    setLoading(false);
+    setStory(null);
+    setMetadata(emptyMetadata);
+    setActiveGenre(null);
+  }, []);
+
+  return {
+    story, metadata, loading, error, activeGenre,
+    fetchStory, startLoading, setResult, setErrorState,
+  };
 }

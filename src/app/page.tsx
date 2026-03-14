@@ -23,13 +23,19 @@ export default function Home() {
   const [timing, setTiming] = useState<PipelineTiming>({ storyMs: null, audioMs: null });
   const phaseStartRef = useRef<number>(0);
 
-  const { story, metadata, loading, error, activeGenre, fetchStory } = useHistoryStory();
+  const history = useHistoryStory();
   const tts = useTextToSpeech();
   const bgMusic = useBackgroundMusic();
 
-  // Unified pipeline: reset → warmUp → fetch story → generate audio → auto-play
+  /**
+   * Unified streaming pipeline: calls /api/pipeline which returns NDJSON.
+   * Phase 1: story JSON line → display story immediately
+   * Phase 2: audio base64 line → decode and play
+   * Server-side overlap: TTS fires immediately after story gen completes,
+   * without waiting for client round-trip.
+   */
   const runPipeline = async (date: Date, genre?: string) => {
-    // Full reset — destroy audio, stop music, clear timing
+    // Full reset
     tts.cleanup();
     bgMusic.stop();
     setTiming({ storyMs: null, audioMs: null });
@@ -40,26 +46,85 @@ export default function Home() {
 
     // Warm up audio element during user click to satisfy autoplay policy
     tts.warmUp();
+    history.startLoading();
 
-    // Phase 1: "Uncovering history..."
-    const data = await fetchStory(date, genre);
-    const storyMs = Date.now() - phaseStartRef.current;
-    setTiming(prev => ({ ...prev, storyMs }));
-    if (!data) { setPipelineStart(null); return; }
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
 
-    // Phase 2: "Finding our history professor..." → auto-play audio
-    phaseStartRef.current = Date.now();
     try {
-      await tts.speak({
-        text: data.story,
-        eventTitle: data.metadata.eventTitle,
-        eventDate: format(date, 'MMMM d'),
-        eventYear: data.metadata.eventYear,
-        onStart: () => bgMusic.play(),
-        onEnd: () => bgMusic.stop(),
+      const response = await fetch('/api/pipeline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month, day, ...(genre ? { genre } : {}) }),
       });
-      const audioMs = Date.now() - phaseStartRef.current;
-      setTiming(prev => ({ ...prev, audioMs }));
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: 'Pipeline failed' }));
+        throw new Error(data.error || 'Pipeline failed');
+      }
+
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop()!; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const event = JSON.parse(line);
+
+          if (event.type === 'story') {
+            const storyMs = Date.now() - phaseStartRef.current;
+            setTiming(prev => ({ ...prev, storyMs }));
+            phaseStartRef.current = Date.now();
+
+            // Display story immediately — TTS is already generating on the server
+            history.setResult({
+              story: event.story,
+              metadata: {
+                eventTitle: event.eventTitle,
+                eventYear: event.eventYear,
+                mlaCitation: event.mlaCitation,
+              },
+              genre: event.genre,
+            });
+
+            // Show "Finding our history professor..." while audio generates
+            tts.setLoadingState(true);
+          }
+
+          if (event.type === 'audio') {
+            const audioMs = Date.now() - phaseStartRef.current;
+            setTiming(prev => ({ ...prev, audioMs }));
+
+            // Decode base64 → blob → play
+            const binaryString = atob(event.audio);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+            const blob = new Blob([bytes], { type: 'audio/mpeg' });
+
+            await tts.playBlob(blob, {
+              onStart: () => bgMusic.play(),
+              onEnd: () => bgMusic.stop(),
+            });
+          }
+
+          if (event.type === 'error') {
+            throw new Error(event.error);
+          }
+        }
+      }
+    } catch (err) {
+      history.setErrorState((err as Error).message || 'Something went wrong');
+      tts.setLoadingState(false);
     } finally {
       setPipelineStart(null);
     }
@@ -112,14 +177,14 @@ export default function Home() {
         />
 
         {/* Story Area */}
-        {loading && <LoadingState message="Uncovering history..." startTime={pipelineStart} />}
-        {tts.loading && !loading && <LoadingState message="Finding our history professor..." startTime={pipelineStart} />}
+        {history.loading && <LoadingState message="Uncovering history..." startTime={pipelineStart} />}
+        {tts.loading && !history.loading && <LoadingState message="Finding our history professor..." startTime={pipelineStart} />}
 
-        {error && (
+        {history.error && (
           <div className="bg-red-900/30 border border-red-800 rounded-xl p-4 max-w-2xl mx-auto text-center">
-            <p className="text-red-400">{error}</p>
+            <p className="text-red-400">{history.error}</p>
             <button
-              onClick={() => selectedDate && fetchStory(selectedDate)}
+              onClick={() => selectedDate && runPipeline(selectedDate)}
               className="mt-2 text-sm text-red-300 underline hover:text-red-200"
             >
               Try again
@@ -127,20 +192,20 @@ export default function Home() {
           </div>
         )}
 
-        {story && selectedDate && !loading && (
+        {history.story && selectedDate && !history.loading && (
           <StoryCard
-            story={story}
+            story={history.story}
             date={selectedDate}
-            eventTitle={metadata.eventTitle}
-            eventYear={metadata.eventYear}
-            mlaCitation={metadata.mlaCitation}
-            genre={activeGenre}
+            eventTitle={history.metadata.eventTitle}
+            eventYear={history.metadata.eventYear}
+            mlaCitation={history.metadata.mlaCitation}
+            genre={history.activeGenre}
             onRandomHistory={handleRandomHistory}
-            spinning={loading || tts.loading}
+            spinning={history.loading || tts.loading}
             onTogglePlayPause={handleTogglePlayPause}
             onReplay={handleReplay}
             onDownloadAudio={() => {
-              const title = metadata.eventTitle || 'story';
+              const title = history.metadata.eventTitle || 'story';
               const safeName = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
               tts.download(`this-moment-in-history-${safeName}.mp3`);
             }}
@@ -159,7 +224,7 @@ export default function Home() {
         )}
 
         {/* Empty state */}
-        {!selectedDate && !loading && (
+        {!selectedDate && !history.loading && (
           <div className="text-center py-12">
             <p className="text-stone-500 text-lg">
               Select a date from the calendar above to uncover a moment in history.

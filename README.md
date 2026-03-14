@@ -1,6 +1,6 @@
 # This Moment in History
 
-An AI-powered creative nonfiction storytelling app with voice narration. Pick any calendar date and receive a vivid 200-300 word historical vignette — not a Wikipedia summary, but an immersive second-person narrative that drops you into the moment. Audio narration auto-generates with ambient background music for an immersive documentary-style experience.
+An AI-powered creative nonfiction storytelling app with voice narration. Pick any calendar date and receive a vivid 150-200 word historical vignette — not a Wikipedia summary, but an immersive second-person narrative that drops you into the moment. Audio narration auto-generates with ambient background music for an immersive documentary-style experience.
 
 ## How It Works
 
@@ -17,8 +17,8 @@ An AI-powered creative nonfiction storytelling app with voice narration. Pick an
 |-------|-----------|
 | Framework | Next.js 16 (App Router), React 19, TypeScript |
 | Styling | Tailwind CSS 4 |
-| AI Storytelling | Anthropic Claude API (`claude-sonnet-4-20250514`) |
-| Voice Narration | ElevenLabs TTS API (Adam voice, Multilingual v2) |
+| AI Storytelling | Anthropic Claude API (`claude-3-5-haiku-20241022`) |
+| Voice Narration | ElevenLabs TTS API (Adam voice, Flash v2.5) |
 | Background Music | ElevenLabs Sound Effects API (dreamscape piano loop) |
 | Calendar | react-day-picker, date-fns |
 | Testing | Vitest, React Testing Library |
@@ -58,19 +58,21 @@ this-moment-in-history/
 ├── src/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── history/route.ts    # Story generation endpoint (Claude API)
-│   │   │   └── tts/route.ts        # Text-to-speech endpoint (ElevenLabs API)
+│   │   │   ├── history/route.ts    # Story generation endpoint (standalone fallback)
+│   │   │   ├── pipeline/route.ts   # Unified streaming pipeline (story + TTS, NDJSON)
+│   │   │   └── tts/route.ts        # Text-to-speech endpoint (standalone fallback)
 │   │   ├── layout.tsx              # Root layout
-│   │   └── page.tsx                # Main page (wires everything together)
+│   │   └── page.tsx                # Main page — streaming pipeline orchestrator
 │   ├── components/
 │   │   ├── CalendarPicker.tsx       # Date picker (react-day-picker, amber theme)
 │   │   ├── StoryCard.tsx            # Story display + all action buttons + timing
 │   │   └── LoadingState.tsx         # Skeleton loader with quill animation + elapsed timer
 │   ├── hooks/
-│   │   ├── useHistoryStory.ts       # Story fetching + metadata state
-│   │   ├── useTextToSpeech.ts       # TTS playback, warmUp, download, lifecycle callbacks
+│   │   ├── useHistoryStory.ts       # Story state + pipeline helpers (startLoading, setResult)
+│   │   ├── useTextToSpeech.ts       # TTS playback, warmUp, playBlob, download, lifecycle
 │   │   └── useBackgroundMusic.ts    # Ambient music (syncs with narrator, mute toggle)
 │   ├── lib/
+│   │   ├── prompts.ts             # Shared system prompt + tool definition
 │   │   ├── validation.ts           # Input validation (month, day, genre)
 │   │   ├── genres.ts               # 20 content genres + random selection
 │   │   └── rateLimit.ts            # In-memory rate limiter (10 req/IP/60s)
@@ -80,7 +82,8 @@ this-moment-in-history/
 │       ├── StoryCard.test.tsx       # 29 tests — rendering, audio, genre, controls, timing
 │       ├── LoadingState.test.tsx     # 5 tests — loading UI, custom messages, elapsed timer
 │       ├── genres.test.ts           # 5 tests — genre list + random selection
-│       └── ttsRoute.test.ts         # 16 tests — TTS validation, voice config
+│       ├── ttsRoute.test.ts         # 16 tests — TTS validation, voice config
+│       └── pipelineConfig.test.ts   # 14 tests — pipeline models, shared prompt, tool schema
 ├── .env.local                       # API keys (gitignored)
 ├── vercel.json                      # Security headers (CSP, HSTS, X-Frame-Options)
 ├── vitest.config.ts                 # Test configuration
@@ -169,6 +172,40 @@ Fixed browser autoplay policy and added real-time performance feedback.
 - Timing resets on every new date selection or Random History click
 - 78 tests passing
 
+### MVP 7 — Efficiency Review (March 14, 2026)
+
+Code quality pass — removed dead code, fixed bugs, optimized performance.
+
+- Fixed `handleEnded` identity bug — converted to `useRef` for stable `addEventListener`/`removeEventListener` identity
+- Removed dead `audioPaused` prop from StoryCard (accepted but never used in rendering)
+- Added defensive `URL.revokeObjectURL` guard in `speak()` to prevent blob memory leaks
+- Removed redundant `cleanup()` call inside `warmUp()` (callers already call cleanup)
+- Extracted `runPipeline()` to unify `handleDateSelect` and `handleRandomHistory` flows
+- Moved `formatMs` to module scope (was recreated every render)
+- Switched ElevenLabs model from `eleven_multilingual_v2` to `eleven_turbo_v2_5`
+- Set ElevenLabs `style: 0` to reduce TTS latency
+- Reduced Claude `max_tokens` from 1024 to 512
+- 78 tests passing (8 files changed, 62 insertions, 90 deletions)
+
+### MVP 8 — Streaming Pipeline + Speed Optimization (March 14, 2026)
+
+3x faster pipeline — unified streaming endpoint with faster AI models.
+
+- **Unified `/api/pipeline` endpoint** — single NDJSON streaming request handles both story generation and TTS audio, eliminating client round-trip between phases
+- **Server-side overlap** — TTS generation fires immediately after story completes on the server, without waiting for story data to reach the client first
+- **Claude Haiku model** (`claude-3-5-haiku-20241022`) — ~3-5x faster story generation vs Sonnet
+- **ElevenLabs Flash model** (`eleven_flash_v2_5`) — fastest available TTS model, lowest latency
+- **Shorter vignettes** (150-200 words vs 200-300) — less text = faster TTS generation
+- **NDJSON streaming** — client reads story and audio as separate lines; story displays immediately while TTS still generates
+- **Shared prompt module** (`src/lib/prompts.ts`) — system prompt and tool definition extracted to shared module, eliminating duplication between `/api/history` and `/api/pipeline`
+- **`playBlob()` method** on `useTextToSpeech` — plays pre-fetched audio blobs directly, bypassing the standalone `/api/tts` fetch
+- **`setLoadingState()` method** on `useTextToSpeech` — allows pipeline orchestrator to control TTS loading indicator during server-side audio generation
+- **Pipeline helpers** on `useHistoryStory` — `startLoading()`, `setResult()`, `setErrorState()` enable streaming pipeline to update story state without calling `fetchStory()`
+- Standalone `/api/history` and `/api/tts` endpoints kept as fallbacks
+- Previous pipeline: Story ~13s (Sonnet) + Audio ~18.5s (Turbo) = ~31.4s sequential
+- Target pipeline: Story ~3-4s (Haiku) + Audio ~5-8s (Flash) = ~8-12s with server overlap
+- 92 tests passing
+
 ## Environment Variables
 
 | Variable | Required | Description |
@@ -189,7 +226,7 @@ Fixed browser autoplay policy and added real-time performance feedback.
 ## Testing
 
 ```bash
-npm test          # Run all 78 tests
+npm test          # Run all 92 tests
 npm run test:watch # Watch mode
 ```
 
@@ -200,15 +237,16 @@ npm run test:watch # Watch mode
 | StoryCard.test.tsx | 29 | Rendering, audio controls, genre badge, download, music toggle, timing label |
 | LoadingState.test.tsx | 5 | Loading text, skeleton lines, custom messages, elapsed timer |
 | genres.test.ts | 5 | Genre list integrity, random selection |
-| ttsRoute.test.ts | 16 | TTS validation, voice config, voice settings |
+| ttsRoute.test.ts | 16 | TTS validation, voice config (Flash v2.5), voice settings |
+| pipelineConfig.test.ts | 14 | Pipeline models (Haiku + Flash), shared prompt, tool schema |
 
 ## The Story Behind the Build
 
-This project started as a portfolio build challenge: go from zero to deployed in a 3-day sprint, following a structured build guide. What was estimated to take 8-11 hours across 3 days was completed in two evening sessions (~5 hours total) using Claude Code and the Kajiro IQ Pro prompt optimization framework.
+This project started as a portfolio build challenge: go from zero to deployed in a 3-day sprint, following a structured build guide. What was estimated to take 8-11 hours across 3 days was completed in two evening sessions (~6 hours total) using Claude Code and the Kajiro IQ Pro prompt optimization framework.
 
 The core idea: history doesn't have to read like a textbook. Every date has a story worth telling — not as a list of facts, but as a moment you can feel. The AI system prompt enforces literary journalism rules: sensory details, real people, real places, present tense, second person. No "On this day in..." openings. No Wikipedia summaries. Just immersive storytelling grounded in fact.
 
-MVP 2 and MVP 3 elevated the experience from reading to listening — adding voice narration and ambient music turned a text app into something closer to an audio documentary experience, all generated on demand. MVP 4 added genre-based discovery, MVP 5 made the entire audio pipeline automatic, and MVP 6 fixed browser autoplay compliance and added real-time pipeline performance metrics so users see exactly how long each phase takes.
+MVP 2 and MVP 3 elevated the experience from reading to listening — adding voice narration and ambient music turned a text app into something closer to an audio documentary experience, all generated on demand. MVP 4 added genre-based discovery, MVP 5 made the entire audio pipeline automatic, MVP 6 fixed browser autoplay compliance and added real-time pipeline performance metrics, MVP 7 cleaned up code quality and fixed bugs, and MVP 8 introduced a unified streaming pipeline with faster AI models to cut total generation time from ~31s to ~8-12s.
 
 ## Build Timeline
 
@@ -218,8 +256,9 @@ MVP 2 and MVP 3 elevated the experience from reading to listening — adding voi
 | MVP 1 complete | Day 1-2 | March 13, 2026 (3.5 hrs) |
 | MVP 2 + MVP 3 complete | — | March 14, 2026 (1.5 hrs) |
 | MVP 4 + MVP 5 + MVP 6 complete | — | March 14, 2026 (same session) |
-| Total time | 8-11 hrs | ~5 hrs |
-| Time saved | — | ~50% |
+| MVP 7 + MVP 8 complete | — | March 14, 2026 (same session) |
+| Total time | 8-11 hrs | ~6 hrs |
+| Time saved | — | ~40-50% |
 | Built with | — | Claude Code + Kajiro IQ Pro |
 
 ## License

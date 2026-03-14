@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 // Constants matching the TTS route configuration
 const EXPECTED_VOICE_ID = 'pNInz6obpgDQGcFmaJgB'; // Adam
-const EXPECTED_MODEL = 'eleven_turbo_v2_5';
+const EXPECTED_MODEL = 'eleven_flash_v2_5';
 
 describe('TTS Route Configuration', () => {
   it('uses Adam voice ID', () => {
@@ -10,8 +10,8 @@ describe('TTS Route Configuration', () => {
     expect(EXPECTED_VOICE_ID).toBe('pNInz6obpgDQGcFmaJgB');
   });
 
-  it('uses turbo v2.5 model for lower latency', () => {
-    expect(EXPECTED_MODEL).toBe('eleven_turbo_v2_5');
+  it('uses flash v2.5 model for lowest latency', () => {
+    expect(EXPECTED_MODEL).toBe('eleven_flash_v2_5');
   });
 
   it('constructs correct ElevenLabs API URL', () => {

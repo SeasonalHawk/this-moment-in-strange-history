@@ -11,6 +11,11 @@ interface SpeakOptions {
   onEnd?: () => void;
 }
 
+interface PlayBlobOptions {
+  onStart?: () => void;
+  onEnd?: () => void;
+}
+
 export function useTextToSpeech() {
   const [loading, setLoading] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -47,6 +52,7 @@ export function useTextToSpeech() {
     setPlaying(false);
     setPaused(false);
     setHasAudio(false);
+    setLoading(false);
   }, []);
 
   // Warm up audio context — call synchronously inside a user click handler
@@ -57,7 +63,40 @@ export function useTextToSpeech() {
     audioRef.current = audio;
   }, []);
 
-  // Generate audio and auto-play using the pre-warmed audio element
+  // Explicitly control the loading state from the pipeline orchestrator
+  const setLoadingState = useCallback((isLoading: boolean) => {
+    setLoading(isLoading);
+  }, []);
+
+  // Play a pre-fetched audio blob directly (used by streaming pipeline)
+  const playBlob = useCallback(async (blob: Blob, options?: PlayBlobOptions) => {
+    onStartRef.current = options?.onStart;
+    onEndRef.current = options?.onEnd;
+    blobRef.current = blob;
+
+    // Revoke previous URL (defensive guard)
+    if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+    const url = URL.createObjectURL(blob);
+    urlRef.current = url;
+
+    // Use pre-warmed audio element if available, otherwise create new
+    let audio = audioRef.current;
+    if (!audio) {
+      audio = new Audio();
+      audio.addEventListener('ended', handleEndedRef.current);
+      audioRef.current = audio;
+    }
+    audio.src = url;
+
+    setHasAudio(true);
+    setLoading(false);
+    await audio.play();
+    setPlaying(true);
+    setPaused(false);
+    onStartRef.current?.();
+  }, []);
+
+  // Generate audio via /api/tts and auto-play (standalone, kept as fallback)
   const speak = useCallback(async (options: SpeakOptions) => {
     setError(null);
     setLoading(true);
@@ -82,27 +121,7 @@ export function useTextToSpeech() {
       }
 
       const blob = await response.blob();
-      blobRef.current = blob;
-
-      // Revoke previous URL if speak() is called without cleanup (defensive guard)
-      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
-      const url = URL.createObjectURL(blob);
-      urlRef.current = url;
-
-      // Use the pre-warmed audio element if available, otherwise create new
-      let audio = audioRef.current;
-      if (!audio) {
-        audio = new Audio();
-        audio.addEventListener('ended', handleEndedRef.current);
-        audioRef.current = audio;
-      }
-      audio.src = url;
-
-      setHasAudio(true);
-      await audio.play();
-      setPlaying(true);
-      setPaused(false);
-      onStartRef.current?.();
+      await playBlob(blob, { onStart: options.onStart, onEnd: options.onEnd });
     } catch (err: unknown) {
       const e = err as { message?: string };
       setError(e.message || 'Failed to play audio');
@@ -112,7 +131,7 @@ export function useTextToSpeech() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [playBlob]);
 
   // Toggle play/pause — does NOT destroy audio
   const togglePlayPause = useCallback(() => {
@@ -168,5 +187,9 @@ export function useTextToSpeech() {
     };
   }, [cleanup]);
 
-  return { speak, warmUp, togglePlayPause, replay, stop, cleanup, download, loading, playing, paused, hasAudio, error };
+  return {
+    speak, warmUp, playBlob, setLoadingState,
+    togglePlayPause, replay, stop, cleanup, download,
+    loading, playing, paused, hasAudio, error,
+  };
 }
