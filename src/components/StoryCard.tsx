@@ -19,6 +19,7 @@ interface StoryCardProps {
   hasAudio: boolean;
   musicMuted: boolean;
   onToggleMusic: () => void;
+  timingLabel?: string;
 }
 
 export default function StoryCard({
@@ -26,7 +27,7 @@ export default function StoryCard({
   genre, onRandomHistory, spinning,
   onTogglePlayPause, onReplay, onDownloadAudio,
   audioPlaying, audioPaused, hasAudio,
-  musicMuted, onToggleMusic,
+  musicMuted, onToggleMusic, timingLabel,
 }: StoryCardProps) {
   return (
     <div className="bg-stone-900 border border-stone-700 rounded-xl p-6 shadow-lg max-w-2xl mx-auto">
@@ -166,6 +167,15 @@ export default function StoryCard({
           <p className="text-stone-500 text-xs uppercase tracking-wider mb-1">Reference</p>
           <p className="text-stone-400 text-sm italic leading-relaxed">
             {mlaCitation}
+          </p>
+        </div>
+      )}
+
+      {/* Pipeline timing */}
+      {timingLabel && (
+        <div className="mt-4 pt-3 border-t border-stone-800/50" data-testid="timing-label">
+          <p className="text-stone-600 text-xs font-mono text-center">
+            {timingLabel}
           </p>
         </div>
       )}

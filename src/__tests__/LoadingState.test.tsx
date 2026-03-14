@@ -19,4 +19,17 @@ describe('LoadingState', () => {
     const skeletonLines = container.querySelectorAll('.animate-pulse');
     expect(skeletonLines.length).toBeGreaterThan(0);
   });
+
+  it('shows elapsed timer when startTime is provided', () => {
+    render(<LoadingState startTime={Date.now() - 2500} />);
+    const timer = screen.getByTestId('elapsed-timer');
+    expect(timer).toBeInTheDocument();
+    // Should show roughly 2.5s (may vary slightly)
+    expect(timer.textContent).toMatch(/\d+\.\ds/);
+  });
+
+  it('does not show timer when no startTime', () => {
+    render(<LoadingState />);
+    expect(screen.queryByTestId('elapsed-timer')).not.toBeInTheDocument();
+  });
 });

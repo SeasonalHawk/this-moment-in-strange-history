@@ -48,9 +48,17 @@ export function useTextToSpeech() {
     setHasAudio(false);
   }, []);
 
-  // Generate audio and auto-play
-  const speak = useCallback(async (options: SpeakOptions) => {
+  // Warm up audio context — call this synchronously inside a user click handler
+  // to establish the browser audio permission before any async work
+  const warmUp = useCallback(() => {
     cleanup();
+    const audio = new Audio();
+    audio.addEventListener('ended', handleEnded);
+    audioRef.current = audio;
+  }, [cleanup]);
+
+  // Generate audio and auto-play using the pre-warmed audio element
+  const speak = useCallback(async (options: SpeakOptions) => {
     setError(null);
     setLoading(true);
     onStartRef.current = options.onStart;
@@ -78,9 +86,14 @@ export function useTextToSpeech() {
       const url = URL.createObjectURL(blob);
       urlRef.current = url;
 
-      const audio = new Audio(url);
-      audio.addEventListener('ended', handleEnded);
-      audioRef.current = audio;
+      // Use the pre-warmed audio element if available, otherwise create new
+      let audio = audioRef.current;
+      if (!audio) {
+        audio = new Audio();
+        audio.addEventListener('ended', handleEnded);
+        audioRef.current = audio;
+      }
+      audio.src = url;
 
       setHasAudio(true);
       await audio.play();
@@ -96,7 +109,7 @@ export function useTextToSpeech() {
     } finally {
       setLoading(false);
     }
-  }, [cleanup]);
+  }, []);
 
   // Toggle play/pause — does NOT destroy audio
   const togglePlayPause = useCallback(() => {
@@ -152,5 +165,5 @@ export function useTextToSpeech() {
     };
   }, [cleanup]);
 
-  return { speak, togglePlayPause, replay, stop, cleanup, download, loading, playing, paused, hasAudio, error };
+  return { speak, warmUp, togglePlayPause, replay, stop, cleanup, download, loading, playing, paused, hasAudio, error };
 }

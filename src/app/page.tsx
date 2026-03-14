@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { format } from 'date-fns';
 import CalendarPicker from '@/components/CalendarPicker';
 import StoryCard from '@/components/StoryCard';
@@ -10,15 +10,25 @@ import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
 import { getRandomGenre } from '@/lib/genres';
 
+interface PipelineTiming {
+  storyMs: number | null;
+  audioMs: number | null;
+}
+
 export default function Home() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [audioGenerating, setAudioGenerating] = useState(false);
+  const [pipelineStart, setPipelineStart] = useState<number | null>(null);
+  const [timing, setTiming] = useState<PipelineTiming>({ storyMs: null, audioMs: null });
+  const phaseStartRef = useRef<number>(0);
+
   const { story, metadata, loading, error, activeGenre, fetchStory } = useHistoryStory();
-  const { speak, togglePlayPause, replay, cleanup, download, loading: audioLoading, playing: audioPlaying, paused: audioPaused, hasAudio } = useTextToSpeech();
+  const { speak, warmUp, togglePlayPause, replay, cleanup, download, playing: audioPlaying, paused: audioPaused, hasAudio } = useTextToSpeech();
   const bgMusic = useBackgroundMusic();
 
   const generateAudioForStory = async (storyText: string, date: Date, eventTitle: string | null, eventYear: string | null) => {
     const dateStr = format(date, 'MMMM d');
+    phaseStartRef.current = Date.now();
     setAudioGenerating(true);
     try {
       await speak({
@@ -29,8 +39,11 @@ export default function Home() {
         onStart: () => bgMusic.play(),
         onEnd: () => bgMusic.stop(),
       });
+      const audioMs = Date.now() - phaseStartRef.current;
+      setTiming(prev => ({ ...prev, audioMs }));
     } finally {
       setAudioGenerating(false);
+      setPipelineStart(null);
     }
   };
 
@@ -39,12 +52,22 @@ export default function Home() {
     cleanup();
     bgMusic.stop();
     setAudioGenerating(false);
+    setTiming({ storyMs: null, audioMs: null });
     setSelectedDate(date);
 
     if (date) {
+      const now = Date.now();
+      setPipelineStart(now);
+      phaseStartRef.current = now;
+
+      // Warm up audio element during user click to satisfy autoplay policy
+      warmUp();
+
       // Phase 1: "Uncovering history..." (loading=true from fetchStory)
       const data = await fetchStory(date);
-      if (!data) return;
+      const storyMs = Date.now() - phaseStartRef.current;
+      setTiming(prev => ({ ...prev, storyMs }));
+      if (!data) { setPipelineStart(null); return; }
 
       // Phase 2: "Finding our history professor..." → auto-play audio
       await generateAudioForStory(data.story, date, data.metadata.eventTitle, data.metadata.eventYear);
@@ -58,10 +81,20 @@ export default function Home() {
     cleanup();
     bgMusic.stop();
     setAudioGenerating(false);
+    setTiming({ storyMs: null, audioMs: null });
+
+    const now = Date.now();
+    setPipelineStart(now);
+    phaseStartRef.current = now;
+
+    // Warm up audio element during user click
+    warmUp();
 
     // Phase 1: "Uncovering history..."
     const data = await fetchStory(selectedDate, getRandomGenre());
-    if (!data) return;
+    const storyMs = Date.now() - phaseStartRef.current;
+    setTiming(prev => ({ ...prev, storyMs }));
+    if (!data) { setPipelineStart(null); return; }
 
     // Phase 2: "Finding our history professor..." → auto-play audio
     await generateAudioForStory(data.story, selectedDate, data.metadata.eventTitle, data.metadata.eventYear);
@@ -80,6 +113,9 @@ export default function Home() {
     replay();
     bgMusic.play();
   };
+
+  // Format timing for display
+  const formatMs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
 
   return (
     <div className="min-h-screen bg-stone-950 text-stone-100">
@@ -104,8 +140,8 @@ export default function Home() {
         />
 
         {/* Story Area */}
-        {loading && <LoadingState message="Uncovering history..." />}
-        {audioGenerating && !loading && <LoadingState message="Finding our history professor..." />}
+        {loading && <LoadingState message="Uncovering history..." startTime={pipelineStart} />}
+        {audioGenerating && !loading && <LoadingState message="Finding our history professor..." startTime={pipelineStart} />}
 
         {error && (
           <div className="bg-red-900/30 border border-red-800 rounded-xl p-4 max-w-2xl mx-auto text-center">
@@ -141,6 +177,13 @@ export default function Home() {
             hasAudio={hasAudio}
             musicMuted={bgMusic.muted}
             onToggleMusic={bgMusic.toggleMute}
+            timingLabel={
+              timing.storyMs !== null && timing.audioMs !== null
+                ? `Story ${formatMs(timing.storyMs)} · Audio ${formatMs(timing.audioMs)} · Total ${formatMs(timing.storyMs + timing.audioMs)}`
+                : timing.storyMs !== null
+                  ? `Story ${formatMs(timing.storyMs)}`
+                  : undefined
+            }
           />
         )}
 

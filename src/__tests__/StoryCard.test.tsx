@@ -194,4 +194,16 @@ describe('StoryCard', () => {
     const musicButton = container.querySelector('button[title*="background music"]');
     expect(musicButton).toBeInTheDocument();
   });
+
+  // Timing label tests
+  it('renders timing label when provided', () => {
+    render(<StoryCard {...defaultProps} timingLabel="Story 2.1s · Audio 3.4s · Total 5.5s" />);
+    expect(screen.getByTestId('timing-label')).toBeInTheDocument();
+    expect(screen.getByText('Story 2.1s · Audio 3.4s · Total 5.5s')).toBeInTheDocument();
+  });
+
+  it('does not render timing label when not provided', () => {
+    render(<StoryCard {...defaultProps} />);
+    expect(screen.queryByTestId('timing-label')).not.toBeInTheDocument();
+  });
 });

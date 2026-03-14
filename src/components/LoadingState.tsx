@@ -1,13 +1,36 @@
 'use client';
 
+import { useState, useEffect, useRef } from 'react';
+
 interface LoadingStateProps {
   message?: string;
+  startTime?: number | null;
 }
 
-export default function LoadingState({ message = 'Uncovering history...' }: LoadingStateProps) {
+export default function LoadingState({ message = 'Uncovering history...', startTime }: LoadingStateProps) {
+  const [elapsed, setElapsed] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (!startTime) {
+      setElapsed(0);
+      return;
+    }
+
+    const tick = () => {
+      setElapsed(Math.floor((Date.now() - startTime) / 100) / 10);
+    };
+    tick();
+    intervalRef.current = setInterval(tick, 100);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [startTime]);
+
   return (
     <div className="bg-stone-900 border border-stone-700 rounded-xl p-6 shadow-lg max-w-2xl mx-auto">
-      {/* Quill icon + message */}
+      {/* Quill icon + message + timer */}
       <div className="flex items-center gap-3 mb-6">
         <svg
           className="w-6 h-6 text-amber-400 animate-bounce"
@@ -24,6 +47,11 @@ export default function LoadingState({ message = 'Uncovering history...' }: Load
         <span className="text-amber-400 font-medium animate-pulse">
           {message}
         </span>
+        {startTime && (
+          <span className="text-stone-500 text-sm font-mono ml-auto" data-testid="elapsed-timer">
+            {elapsed.toFixed(1)}s
+          </span>
+        )}
       </div>
 
       {/* Skeleton lines */}
