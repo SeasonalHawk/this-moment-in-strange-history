@@ -64,11 +64,11 @@ this-moment-in-history/
 │   │   └── page.tsx                # Main page (wires everything together)
 │   ├── components/
 │   │   ├── CalendarPicker.tsx       # Date picker (react-day-picker, amber theme)
-│   │   ├── StoryCard.tsx            # Story display + all action buttons
-│   │   └── LoadingState.tsx         # Skeleton loader with quill animation
+│   │   ├── StoryCard.tsx            # Story display + all action buttons + timing
+│   │   └── LoadingState.tsx         # Skeleton loader with quill animation + elapsed timer
 │   ├── hooks/
 │   │   ├── useHistoryStory.ts       # Story fetching + metadata state
-│   │   ├── useTextToSpeech.ts       # TTS playback, download, lifecycle callbacks
+│   │   ├── useTextToSpeech.ts       # TTS playback, warmUp, download, lifecycle callbacks
 │   │   └── useBackgroundMusic.ts    # Ambient music (syncs with narrator, mute toggle)
 │   ├── lib/
 │   │   ├── validation.ts           # Input validation (month, day, genre)
@@ -77,8 +77,8 @@ this-moment-in-history/
 │   └── __tests__/
 │       ├── validation.test.ts       # 18 tests — input validation + message building
 │       ├── rateLimit.test.ts        # 5 tests — rate limiting logic
-│       ├── StoryCard.test.tsx       # 27 tests — rendering, audio, genre, controls
-│       ├── LoadingState.test.tsx     # 3 tests — loading UI + custom messages
+│       ├── StoryCard.test.tsx       # 29 tests — rendering, audio, genre, controls, timing
+│       ├── LoadingState.test.tsx     # 5 tests — loading UI, custom messages, elapsed timer
 │       ├── genres.test.ts           # 5 tests — genre list + random selection
 │       └── ttsRoute.test.ts         # 16 tests — TTS validation, voice config
 ├── .env.local                       # API keys (gitignored)
@@ -158,6 +158,17 @@ Seamless audio experience — narration auto-generates as part of the story pipe
 - Removed manual "Read to Me" button — audio is now fully automatic
 - 74 tests passing
 
+### MVP 6 — Autoplay Fix + Pipeline Timing (March 14, 2026)
+
+Fixed browser autoplay policy and added real-time performance feedback.
+
+- `warmUp()` pattern — creates Audio element synchronously during user click to satisfy browser autoplay policy, then reuses it for TTS playback after async API calls complete
+- Real-time elapsed timer during both loading phases (updates every 100ms)
+- Pipeline timing breakdown on story card: "Story Xs · Audio Ys · Total Zs"
+- `phaseStartRef` uses `useRef` (not state) for synchronous timing accuracy in async code
+- Timing resets on every new date selection or Random History click
+- 78 tests passing
+
 ## Environment Variables
 
 | Variable | Required | Description |
@@ -178,7 +189,7 @@ Seamless audio experience — narration auto-generates as part of the story pipe
 ## Testing
 
 ```bash
-npm test          # Run all 74 tests
+npm test          # Run all 78 tests
 npm run test:watch # Watch mode
 ```
 
@@ -186,8 +197,8 @@ npm run test:watch # Watch mode
 |-----------|-------|----------|
 | validation.test.ts | 18 | Input validation, monthName, buildUserMessage, genre validation |
 | rateLimit.test.ts | 5 | Allow/block, per-IP tracking, window reset |
-| StoryCard.test.tsx | 27 | Rendering, audio controls, genre badge, download, music toggle |
-| LoadingState.test.tsx | 3 | Loading text, skeleton lines, custom messages |
+| StoryCard.test.tsx | 29 | Rendering, audio controls, genre badge, download, music toggle, timing label |
+| LoadingState.test.tsx | 5 | Loading text, skeleton lines, custom messages, elapsed timer |
 | genres.test.ts | 5 | Genre list integrity, random selection |
 | ttsRoute.test.ts | 16 | TTS validation, voice config, voice settings |
 
@@ -197,7 +208,7 @@ This project started as a portfolio build challenge: go from zero to deployed in
 
 The core idea: history doesn't have to read like a textbook. Every date has a story worth telling — not as a list of facts, but as a moment you can feel. The AI system prompt enforces literary journalism rules: sensory details, real people, real places, present tense, second person. No "On this day in..." openings. No Wikipedia summaries. Just immersive storytelling grounded in fact.
 
-MVP 2 and MVP 3 elevated the experience from reading to listening — adding voice narration and ambient music turned a text app into something closer to an audio documentary experience, all generated on demand. MVP 4 added genre-based discovery, and MVP 5 made the entire audio pipeline automatic — no buttons to click, just pick a date and the story arrives with narration ready to play.
+MVP 2 and MVP 3 elevated the experience from reading to listening — adding voice narration and ambient music turned a text app into something closer to an audio documentary experience, all generated on demand. MVP 4 added genre-based discovery, MVP 5 made the entire audio pipeline automatic, and MVP 6 fixed browser autoplay compliance and added real-time pipeline performance metrics so users see exactly how long each phase takes.
 
 ## Build Timeline
 
@@ -206,7 +217,7 @@ MVP 2 and MVP 3 elevated the experience from reading to listening — adding voi
 | Total timeline | 3 days (8-11 hrs) | 2 evening sessions |
 | MVP 1 complete | Day 1-2 | March 13, 2026 (3.5 hrs) |
 | MVP 2 + MVP 3 complete | — | March 14, 2026 (1.5 hrs) |
-| MVP 4 + MVP 5 complete | — | March 14, 2026 (same session) |
+| MVP 4 + MVP 5 + MVP 6 complete | — | March 14, 2026 (same session) |
 | Total time | 8-11 hrs | ~5 hrs |
 | Time saved | — | ~50% |
 | Built with | — | Claude Code + Kajiro IQ Pro |
