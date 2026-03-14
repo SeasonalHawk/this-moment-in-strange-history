@@ -1,6 +1,10 @@
 'use client';
 
-export default function LoadingState() {
+interface LoadingStateProps {
+  message?: string;
+}
+
+export default function LoadingState({ message = 'Uncovering history...' }: LoadingStateProps) {
   return (
     <div className="bg-stone-900 border border-stone-700 rounded-xl p-6 shadow-lg max-w-2xl mx-auto">
       {/* Quill icon + message */}
@@ -18,7 +22,7 @@ export default function LoadingState() {
           <path d="m15 5 4 4" />
         </svg>
         <span className="text-amber-400 font-medium animate-pulse">
-          Uncovering history...
+          {message}
         </span>
       </div>
 

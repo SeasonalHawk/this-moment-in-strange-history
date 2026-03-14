@@ -14,6 +14,7 @@ interface SpeakOptions {
 export function useTextToSpeech() {
   const [loading, setLoading] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [paused, setPaused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasAudio, setHasAudio] = useState(false);
 
@@ -21,14 +22,16 @@ export function useTextToSpeech() {
   const urlRef = useRef<string | null>(null);
   const blobRef = useRef<Blob | null>(null);
 
+  const onStartRef = useRef<(() => void) | undefined>(undefined);
   const onEndRef = useRef<(() => void) | undefined>(undefined);
 
   function handleEnded() {
     setPlaying(false);
+    setPaused(true); // Audio ended — can be replayed
     onEndRef.current?.();
   }
 
-  // Clean up object URL and audio
+  // Full cleanup — destroys audio element and blob (used on new date/genre)
   const cleanup = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -41,14 +44,16 @@ export function useTextToSpeech() {
     }
     blobRef.current = null;
     setPlaying(false);
+    setPaused(false);
     setHasAudio(false);
   }, []);
 
+  // Generate audio and auto-play
   const speak = useCallback(async (options: SpeakOptions) => {
-    // Stop any currently playing audio
     cleanup();
     setError(null);
     setLoading(true);
+    onStartRef.current = options.onStart;
     onEndRef.current = options.onEnd;
 
     try {
@@ -80,26 +85,52 @@ export function useTextToSpeech() {
       setHasAudio(true);
       await audio.play();
       setPlaying(true);
-      options.onStart?.();
+      setPaused(false);
+      onStartRef.current?.();
     } catch (err: unknown) {
       const e = err as { message?: string };
       setError(e.message || 'Failed to play audio');
       setPlaying(false);
+      setPaused(false);
       setHasAudio(false);
     } finally {
       setLoading(false);
     }
   }, [cleanup]);
 
+  // Toggle play/pause — does NOT destroy audio
+  const togglePlayPause = useCallback(() => {
+    if (!audioRef.current) return;
+
+    if (playing) {
+      audioRef.current.pause();
+      setPlaying(false);
+      setPaused(true);
+    } else {
+      audioRef.current.play().catch(() => {});
+      setPlaying(true);
+      setPaused(false);
+    }
+  }, [playing]);
+
+  // Replay from start
+  const replay = useCallback(() => {
+    if (!audioRef.current) return;
+    audioRef.current.currentTime = 0;
+    audioRef.current.play().catch(() => {});
+    setPlaying(true);
+    setPaused(false);
+    onStartRef.current?.();
+  }, []);
+
+  // Stop — pauses audio, fires onEnd, keeps blob for download/replay
   const stop = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current.removeEventListener('ended', handleEnded);
-      audioRef.current = null;
     }
     setPlaying(false);
+    setPaused(false);
     onEndRef.current?.();
-    // Keep blob and URL so user can still download after stopping
   }, []);
 
   const download = useCallback((filename?: string) => {
@@ -121,5 +152,5 @@ export function useTextToSpeech() {
     };
   }, [cleanup]);
 
-  return { speak, stop, download, loading, playing, hasAudio, error };
+  return { speak, togglePlayPause, replay, stop, cleanup, download, loading, playing, paused, hasAudio, error };
 }

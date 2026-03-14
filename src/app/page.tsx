@@ -12,41 +12,73 @@ import { getRandomGenre } from '@/lib/genres';
 
 export default function Home() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [audioGenerating, setAudioGenerating] = useState(false);
   const { story, metadata, loading, error, activeGenre, fetchStory } = useHistoryStory();
-  const { speak, stop, download, loading: audioLoading, playing: audioPlaying, hasAudio } = useTextToSpeech();
+  const { speak, togglePlayPause, replay, cleanup, download, loading: audioLoading, playing: audioPlaying, paused: audioPaused, hasAudio } = useTextToSpeech();
   const bgMusic = useBackgroundMusic();
 
-  const handleDateSelect = (date: Date | undefined) => {
-    setSelectedDate(date);
-    stop(); // Stop narration (which also stops bg music via onEnd)
-    if (date) {
-      fetchStory(date);
-    }
-  };
-
-  const handleRandomHistory = () => {
-    stop(); // Stop narration (which also stops bg music via onEnd)
-    if (selectedDate) {
-      fetchStory(selectedDate, getRandomGenre());
-    }
-  };
-
-  const handleReadToMe = () => {
-    if (story && selectedDate) {
-      const dateStr = format(selectedDate, 'MMMM d');
-      speak({
-        text: story,
-        eventTitle: metadata.eventTitle,
+  const generateAudioForStory = async (storyText: string, date: Date, eventTitle: string | null, eventYear: string | null) => {
+    const dateStr = format(date, 'MMMM d');
+    setAudioGenerating(true);
+    try {
+      await speak({
+        text: storyText,
+        eventTitle,
         eventDate: dateStr,
-        eventYear: metadata.eventYear,
-        onStart: () => bgMusic.play(),   // Start bg music when narrator begins
-        onEnd: () => bgMusic.stop(),     // Stop bg music when narrator ends
+        eventYear,
+        onStart: () => bgMusic.play(),
+        onEnd: () => bgMusic.stop(),
       });
+    } finally {
+      setAudioGenerating(false);
     }
   };
 
-  const handleStopReading = () => {
-    stop(); // Fires onEnd callback which stops bg music
+  const handleDateSelect = async (date: Date | undefined) => {
+    // Full reset — destroy audio, stop music, clear state
+    cleanup();
+    bgMusic.stop();
+    setAudioGenerating(false);
+    setSelectedDate(date);
+
+    if (date) {
+      // Phase 1: "Uncovering history..." (loading=true from fetchStory)
+      const data = await fetchStory(date);
+      if (!data) return;
+
+      // Phase 2: "Finding our history professor..." → auto-play audio
+      await generateAudioForStory(data.story, date, data.metadata.eventTitle, data.metadata.eventYear);
+    }
+  };
+
+  const handleRandomHistory = async () => {
+    if (!selectedDate) return;
+
+    // Full reset — destroy audio, stop music, clear state
+    cleanup();
+    bgMusic.stop();
+    setAudioGenerating(false);
+
+    // Phase 1: "Uncovering history..."
+    const data = await fetchStory(selectedDate, getRandomGenre());
+    if (!data) return;
+
+    // Phase 2: "Finding our history professor..." → auto-play audio
+    await generateAudioForStory(data.story, selectedDate, data.metadata.eventTitle, data.metadata.eventYear);
+  };
+
+  const handleTogglePlayPause = () => {
+    togglePlayPause();
+    if (audioPlaying) {
+      bgMusic.pause();
+    } else {
+      bgMusic.resume();
+    }
+  };
+
+  const handleReplay = () => {
+    replay();
+    bgMusic.play();
   };
 
   return (
@@ -72,7 +104,8 @@ export default function Home() {
         />
 
         {/* Story Area */}
-        {loading && <LoadingState />}
+        {loading && <LoadingState message="Uncovering history..." />}
+        {audioGenerating && !loading && <LoadingState message="Finding our history professor..." />}
 
         {error && (
           <div className="bg-red-900/30 border border-red-800 rounded-xl p-4 max-w-2xl mx-auto text-center">
@@ -95,16 +128,16 @@ export default function Home() {
             mlaCitation={metadata.mlaCitation}
             genre={activeGenre}
             onRandomHistory={handleRandomHistory}
-            spinning={loading}
-            onReadToMe={handleReadToMe}
-            onStopReading={handleStopReading}
+            spinning={loading || audioGenerating}
+            onTogglePlayPause={handleTogglePlayPause}
+            onReplay={handleReplay}
             onDownloadAudio={() => {
               const title = metadata.eventTitle || 'story';
               const safeName = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
               download(`this-moment-in-history-${safeName}.mp3`);
             }}
-            audioLoading={audioLoading}
             audioPlaying={audioPlaying}
+            audioPaused={audioPaused}
             hasAudio={hasAudio}
             musicMuted={bgMusic.muted}
             onToggleMusic={bgMusic.toggleMute}

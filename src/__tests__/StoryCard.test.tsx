@@ -11,11 +11,11 @@ const defaultProps = {
   genre: null as string | null,
   onRandomHistory: vi.fn(),
   spinning: false,
-  onReadToMe: vi.fn(),
-  onStopReading: vi.fn(),
+  onTogglePlayPause: vi.fn(),
+  onReplay: vi.fn(),
   onDownloadAudio: vi.fn(),
-  audioLoading: false,
   audioPlaying: false,
+  audioPaused: false,
   hasAudio: false,
   musicMuted: false,
   onToggleMusic: vi.fn(),
@@ -88,35 +88,54 @@ describe('StoryCard', () => {
     expect(screen.getByText('Espionage & Spies')).toBeInTheDocument();
   });
 
-  // Audio button tests
-  it('renders Read to Me button in idle state', () => {
-    render(<StoryCard {...defaultProps} />);
-    expect(screen.getByText('Read to Me')).toBeInTheDocument();
+  // Audio controls — no audio state (auto-generating, only Random History visible)
+  it('does not show audio controls when no audio', () => {
+    render(<StoryCard {...defaultProps} hasAudio={false} />);
+    expect(screen.queryByText('Pause')).not.toBeInTheDocument();
+    expect(screen.queryByText('Play')).not.toBeInTheDocument();
+    expect(screen.queryByText('Download')).not.toBeInTheDocument();
+    expect(screen.getByText('Random History')).toBeInTheDocument();
   });
 
-  it('calls onReadToMe when Read to Me button clicked', () => {
-    const onReadToMe = vi.fn();
-    render(<StoryCard {...defaultProps} onReadToMe={onReadToMe} />);
-    fireEvent.click(screen.getByText('Read to Me'));
-    expect(onReadToMe).toHaveBeenCalledOnce();
-  });
-
-  it('shows loading state when audio is loading', () => {
-    render(<StoryCard {...defaultProps} audioLoading={true} />);
-    expect(screen.getByText('Loading audio...')).toBeInTheDocument();
-  });
-
-  it('shows Stop Reading button when audio is playing', () => {
-    render(<StoryCard {...defaultProps} audioPlaying={true} />);
-    expect(screen.getByText('Stop Reading')).toBeInTheDocument();
+  // Audio controls — after audio generated
+  it('shows Pause button when audio is playing', () => {
+    render(<StoryCard {...defaultProps} hasAudio={true} audioPlaying={true} />);
+    expect(screen.getByText('Pause')).toBeInTheDocument();
     expect(screen.queryByText('Read to Me')).not.toBeInTheDocument();
   });
 
-  it('calls onStopReading when Stop Reading button clicked', () => {
-    const onStopReading = vi.fn();
-    render(<StoryCard {...defaultProps} audioPlaying={true} onStopReading={onStopReading} />);
-    fireEvent.click(screen.getByText('Stop Reading'));
-    expect(onStopReading).toHaveBeenCalledOnce();
+  it('shows Play button when audio is paused', () => {
+    render(<StoryCard {...defaultProps} hasAudio={true} audioPlaying={false} audioPaused={true} />);
+    expect(screen.getByText('Play')).toBeInTheDocument();
+  });
+
+  it('calls onTogglePlayPause when Pause button clicked', () => {
+    const onTogglePlayPause = vi.fn();
+    render(<StoryCard {...defaultProps} hasAudio={true} audioPlaying={true} onTogglePlayPause={onTogglePlayPause} />);
+    fireEvent.click(screen.getByText('Pause'));
+    expect(onTogglePlayPause).toHaveBeenCalledOnce();
+  });
+
+  it('calls onTogglePlayPause when Play button clicked', () => {
+    const onTogglePlayPause = vi.fn();
+    render(<StoryCard {...defaultProps} hasAudio={true} audioPlaying={false} onTogglePlayPause={onTogglePlayPause} />);
+    fireEvent.click(screen.getByText('Play'));
+    expect(onTogglePlayPause).toHaveBeenCalledOnce();
+  });
+
+  // Replay button
+  it('shows Replay button when audio is available', () => {
+    const { container } = render(<StoryCard {...defaultProps} hasAudio={true} />);
+    const replayButton = container.querySelector('button[title="Replay from start"]');
+    expect(replayButton).toBeInTheDocument();
+  });
+
+  it('calls onReplay when Replay button clicked', () => {
+    const onReplay = vi.fn();
+    const { container } = render(<StoryCard {...defaultProps} hasAudio={true} onReplay={onReplay} />);
+    const replayButton = container.querySelector('button[title="Replay from start"]')!;
+    fireEvent.click(replayButton);
+    expect(onReplay).toHaveBeenCalledOnce();
   });
 
   // Download button tests
@@ -162,5 +181,17 @@ describe('StoryCard', () => {
     const musicButton = container.querySelector('button[title*="background music"]')!;
     fireEvent.click(musicButton);
     expect(onToggleMusic).toHaveBeenCalledOnce();
+  });
+
+  // Full audio controls layout test
+  it('shows all audio controls when hasAudio is true', () => {
+    const { container } = render(<StoryCard {...defaultProps} hasAudio={true} audioPlaying={true} />);
+    expect(screen.getByText('Pause')).toBeInTheDocument();
+    expect(screen.getByText('Download')).toBeInTheDocument();
+    expect(screen.getByText('Random History')).toBeInTheDocument();
+    const replayButton = container.querySelector('button[title="Replay from start"]');
+    expect(replayButton).toBeInTheDocument();
+    const musicButton = container.querySelector('button[title*="background music"]');
+    expect(musicButton).toBeInTheDocument();
   });
 });

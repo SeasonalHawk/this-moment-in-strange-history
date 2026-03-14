@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const client = new Anthropic({ apiKey });
     const message = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 2048,
+      max_tokens: 1024,
       system: SYSTEM_PROMPT,
       tools: [{
         name: 'publish_vignette',

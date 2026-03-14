@@ -11,11 +11,11 @@ interface StoryCardProps {
   genre: string | null;
   onRandomHistory: () => void;
   spinning: boolean;
-  onReadToMe: () => void;
-  onStopReading: () => void;
+  onTogglePlayPause: () => void;
+  onReplay: () => void;
   onDownloadAudio: () => void;
-  audioLoading: boolean;
   audioPlaying: boolean;
+  audioPaused: boolean;
   hasAudio: boolean;
   musicMuted: boolean;
   onToggleMusic: () => void;
@@ -24,8 +24,8 @@ interface StoryCardProps {
 export default function StoryCard({
   story, date, eventTitle, eventYear, mlaCitation,
   genre, onRandomHistory, spinning,
-  onReadToMe, onStopReading, onDownloadAudio,
-  audioLoading, audioPlaying, hasAudio,
+  onTogglePlayPause, onReplay, onDownloadAudio,
+  audioPlaying, audioPaused, hasAudio,
   musicMuted, onToggleMusic,
 }: StoryCardProps) {
   return (
@@ -62,55 +62,58 @@ export default function StoryCard({
             )}
           </button>
 
-          {/* Read to Me / Stop Reading button */}
-          {audioPlaying ? (
-            <button
-              onClick={onStopReading}
-              className="px-4 py-2 bg-red-700 hover:bg-red-600 text-white font-medium rounded-lg transition-colors cursor-pointer flex items-center gap-2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="6" y="6" width="12" height="12" rx="2" />
-              </svg>
-              Stop Reading
-            </button>
-          ) : (
-            <button
-              onClick={onReadToMe}
-              disabled={audioLoading || spinning}
-              className="px-4 py-2 bg-stone-700 hover:bg-stone-600 disabled:bg-stone-800 disabled:text-stone-500 text-white font-medium rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {audioLoading ? (
-                <>
-                  <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Loading audio...
-                </>
-              ) : (
-                <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                  </svg>
-                  Read to Me
-                </>
-              )}
-            </button>
-          )}
-
-          {/* Download audio button — only shows after audio has been generated */}
+          {/* Audio controls — only shown when audio is ready */}
           {hasAudio && (
-            <button
-              onClick={onDownloadAudio}
-              className="px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white font-medium rounded-lg transition-colors cursor-pointer flex items-center gap-2"
-              title="Download audio"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              Download
-            </button>
+            <>
+              {/* Play/Pause toggle */}
+              <button
+                onClick={onTogglePlayPause}
+                className="px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white font-medium rounded-lg transition-colors cursor-pointer flex items-center gap-2"
+              >
+                {audioPlaying ? (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="6" y="4" width="4" height="16" />
+                      <rect x="14" y="4" width="4" height="16" />
+                    </svg>
+                    Pause
+                  </>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                    Play
+                  </>
+                )}
+              </button>
+
+              {/* Replay button */}
+              <button
+                onClick={onReplay}
+                className="px-3 py-2 bg-stone-700 hover:bg-stone-600 text-white font-medium rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                title="Replay from start"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="1 4 1 10 7 10" />
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                </svg>
+              </button>
+
+              {/* Download button */}
+              <button
+                onClick={onDownloadAudio}
+                className="px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white font-medium rounded-lg transition-colors cursor-pointer flex items-center gap-2"
+                title="Download audio"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Download
+              </button>
+            </>
           )}
 
           {/* Random History button */}
