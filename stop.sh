@@ -9,7 +9,7 @@ set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PID_FILE="$PROJECT_DIR/.dev.pid"
 LOG_FILE="$PROJECT_DIR/.dev.log"
-PORT=3000
+PORT="${STRANGE_HISTORY_PORT:-3001}"
 FORCE="${1:-}"
 KILLED=0
 

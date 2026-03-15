@@ -22,6 +22,8 @@ interface StoryCardProps {
   timingLabel?: string;
   /** When true, auto-expands the card body (one-way trigger). */
   autoExpand?: boolean;
+  /** Called when the user closes the story card to reset the page. */
+  onClose?: () => void;
 }
 
 export default function StoryCard({
@@ -30,26 +32,44 @@ export default function StoryCard({
   onTogglePlayPause, onReplay, onDownloadAudio,
   audioPlaying, hasAudio,
   musicMuted, onToggleMusic, timingLabel,
-  autoExpand = false,
+  autoExpand = false, onClose,
 }: StoryCardProps) {
   // System-controlled: expanded state comes directly from prop.
   const expanded = autoExpand;
 
   const header = (
     <div className="flex items-center gap-3 min-w-0">
-      <h2 className="text-amber-400 font-semibold text-lg shrink-0">
-        {format(date, 'MMMM d')}
-      </h2>
-      {eventTitle && (
-        <span className="text-stone-400 text-sm truncate">
-          {eventTitle}
-          {eventYear && <span className="text-stone-500 ml-1">({eventYear})</span>}
-        </span>
-      )}
-      {!expanded && !hasAudio && (
-        <span className="text-stone-600 text-xs ml-auto shrink-0 animate-pulse">
-          Loading narration…
-        </span>
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        {hasAudio ? (
+          <>
+            <h2 className="text-amber-400 font-semibold text-lg shrink-0">
+              {format(date, 'MMMM d')}
+            </h2>
+            {eventTitle && (
+              <span className="text-stone-400 text-sm truncate">
+                {eventTitle}
+                {eventYear && <span className="text-stone-500 ml-1">({eventYear})</span>}
+              </span>
+            )}
+          </>
+        ) : (
+          <span className="text-stone-500 text-sm animate-pulse">
+            Loading narration…
+          </span>
+        )}
+      </div>
+      {onClose && !spinning && (
+        <button
+          onClick={onClose}
+          className="shrink-0 p-1.5 rounded-lg text-stone-500 hover:text-stone-300 hover:bg-stone-800 transition-colors cursor-pointer"
+          title="Close and pick a new date"
+          aria-label="Close story"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
       )}
     </div>
   );
@@ -145,7 +165,7 @@ export default function StoryCard({
             </>
           )}
 
-          {/* Random History button */}
+          {/* Strange Encounter — picks a random date + genre */}
           <button
             onClick={onRandomHistory}
             disabled={spinning}
@@ -157,7 +177,7 @@ export default function StoryCard({
                 Discovering...
               </>
             ) : (
-              'Random History'
+              'Strange Encounter'
             )}
           </button>
         </div>
