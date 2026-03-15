@@ -1,8 +1,8 @@
-# This Moment in History -- User & Developer Guide
+# This Moment in Strange History -- User & Developer Guide
 
 **Author:** Kenneth Benavides
 **Built with:** Claude Code + Kajiro IQ Pro
-**Version:** v1.1.0 (March 2026)
+**Version:** v1.0.0 (March 2026)
 
 ---
 
@@ -27,9 +27,9 @@
 
 ## What This Project Is
 
-This Moment in History is an AI-powered creative nonfiction storytelling application with voice narration. You pick any calendar date. The app generates a vivid 150-200 word historical vignette -- not a Wikipedia summary, but an immersive second-person narrative that drops you into a real moment from the past. A narrator reads the story aloud over Voyagers!-themed background music. The entire experience -- story, audio, music -- generates on demand in under 12 seconds.
+This Moment in Strange History is an AI-powered strange history storytelling application with voice narration. You pick any calendar date. The app uncovers the weird, bizarre, and unexplained events that most history books skip -- mass hysterias, cursed objects, mysterious disappearances, bizarre deaths, and eerie coincidences. Each event becomes a vivid 150-200 word immersive vignette narrated aloud with atmospheric background music. The entire experience generates on demand in under 12 seconds.
 
-Every story is grounded in historical fact. Every story is written like literary journalism. Every story comes with an event title, year, and MLA 9th edition citation.
+Every story is grounded in documented history. Every story is written like literary journalism meets campfire storytelling. Every story comes with an event title, year, and MLA 9th edition citation. Based on [This Moment in History](https://github.com/SeasonalHawk/this-moment-in-history), retuned specifically for the strange and unexplained.
 
 The app is a full-stack Next.js application deployed on Vercel, powered by Anthropic's Claude API for story generation and ElevenLabs' TTS API for voice narration. It was designed, built, and shipped by Kenneth Benavides as a portfolio project demonstrating AI-native application architecture, prompt engineering, and rapid MVP development.
 
@@ -43,7 +43,7 @@ Most "this day in history" apps give you a list of bullet points. A sentence abo
 
 This project started from a different premise: every date has a story worth *feeling*. Not as a list, but as a moment. The smell of gunpowder. The sound of a crowd. The weight of a decision made in a room with bad lighting. The AI system prompt enforces literary journalism rules -- sensory details, real people, real places, present tense, second person. The result reads like the opening paragraph of a magazine feature, not an encyclopedia entry.
 
-The technical goal was equally specific: build a production-quality AI application from zero to deployed in a 3-day sprint, using Claude Code and the Kajiro IQ Pro prompt optimization framework. What was estimated to take 8-11 hours was completed in approximately 8 hours across three evening sessions, shipping 10 MVPs plus v1.1.0 branding with 214 passing tests.
+The technical goal was equally specific: build a production-quality AI application from zero to deployed in a 3-day sprint, using Claude Code and the Kajiro IQ Pro prompt optimization framework. What was estimated to take 8-11 hours was completed in approximately 8 hours across three evening sessions, shipping 10 MVPs plus v1.0.0 branding with 214 passing tests.
 
 ---
 
@@ -60,7 +60,7 @@ The technical goal was equally specific: build a production-quality AI applicati
 | **Real-Time Timing + Cost** | Pipeline timing breakdown and per-request cost estimation (Claude tokens + ElevenLabs characters) displayed on every story. |
 | **Streaming Pipeline** | Unified server endpoint overlaps story and audio generation. Story displays while audio is still being created. |
 | **Themed Loading Messages** | Random archive-themed ("Searching the archives...") and Voyagers!-themed ("The Omni is locked on...") messages during generation. |
-| **Branding Outro** | Every audio file ends with the event title, date, year, and "This audio is created by This Moment in History. Copyright 2026." |
+| **Branding Outro** | Every audio file ends with the event title, date, year, and "This audio is created by This Moment in Strange History. Copyright 2026." |
 | **Professional Branding** | Midjourney cinematic logo, hybrid favicon system (ICO + PNG + Apple + Android), PWA manifest, Open Graph + Twitter Cards for social sharing. See [#31](https://github.com/SeasonalHawk/this-moment-in-history/issues/31). |
 
 ---
@@ -303,7 +303,7 @@ The system prompt is a 400+ word instruction set that enforces a specific litera
 
 When "Random History" is clicked, one of 20 curated genres is applied as a thematic lens:
 
-> True Crime, Conspiracy & Mystery, War & Military, Science & Discovery, Love & Romance, Betrayal & Revenge, Survival & Exploration, Rise & Fall of Empires, Innovation & Invention, Art & Culture, Sports & Competition, Espionage & Spies, Natural Disasters, Revolution & Rebellion, Medicine & Plague, Money & Economics, Religion & Faith, Women Who Changed History, Unsolved Mysteries, Food & Cuisine
+> Unexplained Disappearances, Mass Hysteria & Panic, Cursed Objects & Places, Bizarre Deaths, Cryptids & Creature Sightings, Paranormal Investigations, Medical Oddities, Strange Weather & Natural Anomalies, Eerie Coincidences, Forgotten Experiments, Bizarre Laws & Trials, Haunted History, Strange Crimes, Mysterious Signals & Messages, Doomsday Predictions & Cults, Time Slips & Glitches, Odd Traditions & Rituals, Weird Science, Lost Civilizations & Ruins, Unsolved Mysteries
 
 The genre doesn't change the factual requirements -- it shapes the *angle*. A War & Military lens on March 14 might surface a battlefield moment. A Food & Cuisine lens on the same date might surface the day a food safety law was signed. Same date, different story, both historically accurate.
 
@@ -316,7 +316,7 @@ The narrator reads:
 2. A brief pause (`\n\n`)
 3. The event title
 4. The date and year
-5. Branding: "This audio is created by This Moment in History. Copyright 2026."
+5. Branding: "This audio is created by This Moment in Strange History. Copyright 2026."
 
 This creates a self-contained audio file. If someone downloads the MP3, the audio itself identifies what event it describes and who created it.
 
@@ -409,7 +409,7 @@ Each MVP produces a *working application*. If development stopped at MVP 1, you'
 | 8 | Streaming Pipeline | NDJSON streaming + faster models | Server-side overlap, Haiku + Flash |
 | 9 | Voyagers! Music | Themed soundtrack + cost estimation | Asymmetric fade, bgMusic warmUp, themed loading messages |
 | 10 | System-Controlled Accordion | Persistent DOM cards + locked Collapsible | Derived state from props, non-interactive headers |
-| v1.1.0 | Branding & Metadata | Midjourney logo, favicons, PWA, OG/Twitter cards | Hybrid branding (PNG raster + SVG inline), `next/image` with priority |
+| v1.0.0 | Branding & Metadata | Midjourney logo, favicons, PWA, OG/Twitter cards | Hybrid branding (PNG raster + SVG inline), `next/image` with priority |
 
 ### How Each Layer Built on the Last
 
@@ -510,8 +510,8 @@ Configuration tests verify that hardcoded constants match expected values -- cat
 ### Setup
 
 ```bash
-git clone https://github.com/SeasonalHawk/this-moment-in-history.git
-cd this-moment-in-history
+git clone https://github.com/SeasonalHawk/this-moment-in-strange-history.git
+cd this-moment-in-strange-history
 pnpm install
 ```
 
@@ -627,4 +627,4 @@ Fade-in and fade-out don't need to be symmetrical. The Voyagers! music uses 2 se
 
 ---
 
-*This guide was written as part of the project's documentation to demonstrate the technical decisions, architectural patterns, and development methodology behind This Moment in History. Every line of code, every prompt, and every architectural decision in this project was conceived and directed by Kenneth Benavides.*
+*This guide was written as part of the project's documentation to demonstrate the technical decisions, architectural patterns, and development methodology behind This Moment in Strange History. Every line of code, every prompt, and every architectural decision in this project was conceived and directed by Kenneth Benavides.*

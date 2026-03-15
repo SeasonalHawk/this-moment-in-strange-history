@@ -1,15 +1,15 @@
 # Product Roadmap & Competitive Analysis
 
-**This Moment in History** — Strategic Planning Document
+**This Moment in Strange History** — Strategic Planning Document
 By Kenneth Benavides | March 2026
 
 ---
 
 ## Executive Summary
 
-This document outlines the product roadmap, competitive landscape, feature prioritization, and image generation API evaluation for "This Moment in History." The analysis was conducted using the Kajiro IQ Pro prompt optimization framework to ensure comprehensive coverage and actionable recommendations.
+This document outlines the product roadmap, competitive landscape, feature prioritization, and image generation API evaluation for "This Moment in Strange History." The analysis was conducted using the Kajiro IQ Pro prompt optimization framework to ensure comprehensive coverage and actionable recommendations.
 
-The core finding: **This Moment in History occupies a genuinely uncontested market position** — no existing product combines AI-generated immersive narratives, genre selection, TTS narration, and background music for historical events. The closest analogs are either encyclopedic reference tools (History.com, Wikipedia) or pre-produced podcast content (History Daily). None offer on-demand, AI-powered, interactive storytelling.
+The core finding: **This Moment in Strange History occupies a genuinely uncontested market position** — no existing product combines AI-generated immersive narratives, genre selection, TTS narration, and background music for historical events. The closest analogs are either encyclopedic reference tools (History.com, Wikipedia) or pre-produced podcast content (History Daily). None offer on-demand, AI-powered, interactive storytelling.
 
 ---
 
@@ -65,7 +65,7 @@ The biggest risks: (1) a well-funded incumbent adding AI features, (2) a general
 
 ## Feature Comparison Matrix
 
-| Feature | History.com | Wikipedia | Britannica | Mobile Apps | History Podcasts | Humy.ai | **This Moment in History** |
+| Feature | History.com | Wikipedia | Britannica | Mobile Apps | History Podcasts | Humy.ai | **This Moment in Strange History** |
 |---------|:-----------:|:---------:|:----------:|:-----------:|:----------------:|:-------:|:-------------------------:|
 | Date-based events | Yes | Yes | Yes | Yes | Yes | No | **Yes** |
 | AI-generated narratives | No | No | No | No | No | Partial | **Yes** |
@@ -280,7 +280,7 @@ MVP 9 and 10 diverged from the original plan above. Instead of image generation 
 | PWA manifest | Moved to MVP 11 | Low-hanging fruit saved for image MVP |
 | User favorites (localStorage) | Moved to MVP 12 | Requires user accounts for cross-device sync |
 
-### v1.1.0 — Branding & Metadata (SHIPPED)
+### v1.0.0 — Branding & Metadata (SHIPPED)
 
 | Feature | What Shipped |
 |---------|-------------|
@@ -307,7 +307,7 @@ Based on the current state (10 MVPs, 214 tests, polished audio + UI), the highes
 
 ## Long-Term Vision
 
-### Phase 1: Foundation (MVP 1-10 + v1.1.0) -- COMPLETE
+### Phase 1: Foundation (MVP 1-10 + v1.0.0) -- COMPLETE
 - Core storytelling engine with 20 genre lenses
 - Streaming pipeline (Claude Haiku + ElevenLabs Flash)
 - Voyagers!-themed background music with professional fade-in/out
@@ -334,7 +334,7 @@ Based on the current state (10 MVPs, 214 tests, polished audio + UI), the highes
 
 ### The Vision
 
-"This Moment in History" becomes the **default way people experience historical dates** — not as dry encyclopedia entries, but as immersive, multi-sensory stories they can see, hear, and feel. Every date becomes a portal. Every genre becomes a lens. Every story becomes shareable.
+"This Moment in Strange History" becomes the **default way people experience historical dates** — not as dry encyclopedia entries, but as immersive, multi-sensory stories they can see, hear, and feel. Every date becomes a portal. Every genre becomes a lens. Every story becomes shareable.
 
 ---
 

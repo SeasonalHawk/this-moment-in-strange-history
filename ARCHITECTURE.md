@@ -1,13 +1,13 @@
 # Architecture — Complete Technology Reference
 
-**This Moment in History** — System Design & Technology Map
-By Kenneth Benavides | v1.1.0 | March 2026
+**This Moment in Strange History** — System Design & Technology Map
+By Kenneth Benavides | v1.0.0 | March 2026
 
 ---
 
 ## System Overview
 
-This Moment in History is a full-stack AI storytelling application built on Next.js 16. A single streaming API endpoint coordinates two external services — Anthropic Claude for story generation and ElevenLabs for voice narration — and delivers both results to the browser over an NDJSON stream. The client renders stories immediately while audio is still generating on the server. Background music, cost estimation, and system-controlled UI choreography run entirely on the client with zero additional API calls.
+This Moment in Strange History is a full-stack AI storytelling application built on Next.js 16. A single streaming API endpoint coordinates two external services — Anthropic Claude for story generation and ElevenLabs for voice narration — and delivers both results to the browser over an NDJSON stream. The client renders stories immediately while audio is still generating on the server. Background music, cost estimation, and system-controlled UI choreography run entirely on the client with zero additional API calls.
 
 ---
 
