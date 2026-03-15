@@ -3,7 +3,7 @@ import { rateLimit } from '@/lib/rateLimit';
 
 const ELEVENLABS_VOICE_ID = 'pNInz6obpgDQGcFmaJgB'; // Adam — deep, authoritative male narrator
 const ELEVENLABS_MODEL = 'eleven_flash_v2_5'; // Fastest English model — lowest latency
-const BRANDING_OUTRO = 'This audio is created by This Moment in History. Copyright 2026.';
+const BRANDING_OUTRO = 'This audio is created by This Moment in Strange History. Copyright 2026.';
 
 export async function POST(request: NextRequest) {
   // Rate limit by IP

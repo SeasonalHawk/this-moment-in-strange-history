@@ -1,7 +1,7 @@
 {
-  "name": "This Moment in History",
-  "short_name": "TMIH",
-  "description": "AI-powered historical storytelling with voice narration",
+  "name": "This Moment in Strange History",
+  "short_name": "TMISH",
+  "description": "AI-powered strange history storytelling with voice narration",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0c0a09",
