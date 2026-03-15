@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { format } from 'date-fns';
 import CalendarPicker from '@/components/CalendarPicker';
 import StoryCard from '@/components/StoryCard';
@@ -220,11 +221,16 @@ export default function Home() {
     <div className="min-h-screen bg-stone-950 text-stone-100">
       {/* Header */}
       <header className="border-b border-stone-800 py-6">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-3xl font-bold text-amber-400 tracking-tight">
-            This Moment in History
-          </h1>
-          <p className="text-stone-400 mt-2">
+        <div className="max-w-4xl mx-auto px-4 flex flex-col items-center gap-3">
+          <Image
+            src="/logo-full.png"
+            alt="This Moment in History"
+            width={400}
+            height={224}
+            priority
+            className="w-full max-w-[400px] h-auto"
+          />
+          <p className="text-stone-400 mt-1">
             Pick a date. Step into the past.
           </p>
         </div>
