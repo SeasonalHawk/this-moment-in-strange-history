@@ -1,6 +1,6 @@
-# This Moment in History
+# This Moment in Strange History
 
-An AI-powered creative nonfiction storytelling app with voice narration. Pick any calendar date and receive a vivid 150-200 word historical vignette — not a Wikipedia summary, but an immersive second-person narrative that drops you into the moment. Audio narration auto-generates with Voyagers!-themed background music for an immersive documentary-style experience.
+An AI-powered strange history storytelling app with voice narration. Pick any calendar date and discover the weird, bizarre, and unexplained moments that most history books skip — mass hysterias, cursed objects, mysterious disappearances, bizarre deaths, and eerie coincidences. Every story is a 150-200 word immersive vignette narrated aloud with atmospheric background music. Based on [This Moment in History](https://github.com/SeasonalHawk/this-moment-in-history), retuned for the strange and unexplained.
 
 ## How It Works
 
@@ -8,7 +8,7 @@ An AI-powered creative nonfiction storytelling app with voice narration. Pick an
 2. **Read** the AI-generated creative nonfiction vignette
 3. **Listen** — narration auto-generates with Adam's voice and Voyagers!-themed accompaniment
 4. **Control** — Play/Pause, Replay, Download MP3, Mute Music
-5. **Discover** — click "Random History" for a genre-themed story from a random date
+5. **Discover** — click "Random History" for a strange genre-themed story (Cryptids, Cursed Objects, Bizarre Deaths, and 17 more)
 6. **Download** the audio as an MP3 (includes branding outro)
 
 ## Tech Stack
@@ -28,8 +28,8 @@ An AI-powered creative nonfiction storytelling app with voice narration. Pick an
 ## Quick Start
 
 ```bash
-git clone https://github.com/SeasonalHawk/this-moment-in-history.git
-cd this-moment-in-history
+git clone https://github.com/SeasonalHawk/this-moment-in-strange-history.git
+cd this-moment-in-strange-history
 pnpm install
 ```
 
@@ -51,7 +51,7 @@ Open [http://localhost:3000](http://localhost:3000)
 ## Project Structure
 
 ```
-this-moment-in-history/
+this-moment-in-strange-history/
 ├── public/
 │   ├── audio/
 │   │   └── chronostream-runner.mp3   # Voyagers!-themed background music (static asset)
@@ -139,8 +139,8 @@ Added "Read to Me" — hear the story narrated aloud.
 - Audio auto-stops when picking a new date or spinning
 - Download button — save narration as MP3
 - Narration ending reads: event title, date, year, then branding outro
-- Branding: "This audio is created by This Moment in History. Copyright 2026."
-- Download filename includes event title (e.g., `this-moment-in-history-the-fall-of-the-berlin-wall.mp3`)
+- Branding: "This audio is created by This Moment in Strange History. Copyright 2026."
+- Download filename includes event title (e.g., `this-moment-in-strange-history-the-fall-of-the-berlin-wall.mp3`)
 - 54 tests passing
 
 ### MVP 3 — Background Music (March 14, 2026)
@@ -160,7 +160,7 @@ Added subtle ambient music that plays during narration.
 Added genre-based discovery — explore history through thematic lenses.
 
 - "Random History" button replaces "Spin Your Luck" — picks a random date and genre
-- 20 curated content genres: True Crime, Espionage & Spies, War & Military, Science & Discovery, Love & Romance, Betrayal & Revenge, Survival & Exploration, Rise & Fall of Empires, Innovation & Invention, Art & Culture, Sports & Competition, Natural Disasters, Revolution & Rebellion, Medicine & Plague, Money & Economics, Religion & Faith, Women Who Changed History, Unsolved Mysteries, Food & Cuisine, Conspiracy & Mystery
+- 20 curated strange history genres: Unexplained Disappearances, Mass Hysteria & Panic, Cursed Objects & Places, Bizarre Deaths, Cryptids & Creature Sightings, Paranormal Investigations, Medical Oddities, Strange Weather & Natural Anomalies, Eerie Coincidences, Forgotten Experiments, Bizarre Laws & Trials, Haunted History, Strange Crimes, Mysterious Signals & Messages, Doomsday Predictions & Cults, Time Slips & Glitches, Odd Traditions & Rituals, Weird Science, Lost Civilizations & Ruins, Unsolved Mysteries
 - Genre used as thematic lens for AI story generation via Kajiro IQ Pro prompting
 - Genre badge displayed on story card
 - Genre validation on server-side
@@ -253,7 +253,7 @@ Cards persist in DOM — system choreographs expand/collapse for a polished UX.
 - Cards stay visible as collapsed headers even when not active
 - 214 tests passing
 
-### v1.1.0 — Branding & Metadata (March 15, 2026)
+### v1.0.0 — Branding & Metadata (March 15, 2026)
 
 Professional branding, PWA support, and social sharing metadata.
 
@@ -379,7 +379,7 @@ The core idea: history doesn't have to read like a textbook. Every date has a st
 
 MVP 2 and MVP 3 elevated the experience from reading to listening — adding voice narration and ambient music turned a text app into something closer to an audio documentary experience, all generated on demand. MVP 4 added genre-based discovery, MVP 5 made the entire audio pipeline automatic, MVP 6 fixed browser autoplay compliance and added real-time pipeline performance metrics, MVP 7 cleaned up code quality and fixed bugs, and MVP 8 introduced a unified streaming pipeline with faster AI models to cut total generation time from ~31s to ~8-12s.
 
-MVP 9 brought the Voyagers!-themed Chronostream Runner soundtrack with professional fade-in/fade-out, and MVP 10 added system-controlled collapsible accordion sections — the LoadingState and StoryCard now persist in the DOM permanently with choreographed expand/collapse transitions, preventing premature button clicks before audio is ready. v1.1.0 added professional Midjourney branding, a complete favicon/PWA system, and Open Graph metadata for social sharing previews.
+MVP 9 brought the Voyagers!-themed Chronostream Runner soundtrack with professional fade-in/fade-out, and MVP 10 added system-controlled collapsible accordion sections — the LoadingState and StoryCard now persist in the DOM permanently with choreographed expand/collapse transitions, preventing premature button clicks before audio is ready. v1.0.0 added professional Midjourney branding, a complete favicon/PWA system, and Open Graph metadata for social sharing previews.
 
 ## Build Timeline
 
@@ -391,7 +391,7 @@ MVP 9 brought the Voyagers!-themed Chronostream Runner soundtrack with professio
 | MVP 4 + MVP 5 + MVP 6 complete | — | March 14, 2026 (same session) |
 | MVP 7 + MVP 8 complete | — | March 14, 2026 (same session) |
 | MVP 9 + MVP 10 complete | — | March 15, 2026 |
-| v1.1.0 (branding + metadata) | — | March 15, 2026 |
+| v1.0.0 (branding + metadata) | — | March 15, 2026 |
 | Total time | 8-11 hrs | ~8 hrs |
 | Built with | — | Claude Code + Kajiro IQ Pro |
 

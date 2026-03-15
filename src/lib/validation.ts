@@ -42,7 +42,7 @@ export function monthName(month: number) {
 }
 
 export function buildUserMessage(month: number, day: number, genre?: string) {
-  const base = `Write a creative nonfiction vignette about a real historical event that happened on ${monthName(month)} ${day}.`;
+  const base = `Write a creative nonfiction vignette about a STRANGE, BIZARRE, or UNEXPLAINED real historical event that happened on ${monthName(month)} ${day}. Prioritize the weird, eerie, and mysterious over mainstream events.`;
 
   if (!genre) {
     return base;

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import Image from 'next/image';
 import { format } from 'date-fns';
 import CalendarPicker from '@/components/CalendarPicker';
 import StoryCard from '@/components/StoryCard';
@@ -222,16 +221,11 @@ export default function Home() {
       {/* Header */}
       <header className="border-b border-stone-800 py-6">
         <div className="max-w-4xl mx-auto px-4 flex flex-col items-center gap-3">
-          <Image
-            src="/logo-full.png"
-            alt="This Moment in History"
-            width={400}
-            height={224}
-            priority
-            className="w-full max-w-[400px] h-auto"
-          />
+          <h1 className="text-3xl sm:text-4xl font-bold text-amber-500 tracking-tight text-center">
+            This Moment in Strange History
+          </h1>
           <p className="text-stone-400 mt-1">
-            Pick a date. Step into the past.
+            Pick a date. Discover the weird.
           </p>
         </div>
       </header>
@@ -281,7 +275,7 @@ export default function Home() {
             onDownloadAudio={() => {
               const title = history.metadata.eventTitle || 'story';
               const safeName = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
-              tts.download(`this-moment-in-history-${safeName}.mp3`);
+              tts.download(`strange-history-${safeName}.mp3`);
             }}
             audioPlaying={tts.playing}
             hasAudio={tts.hasAudio}
@@ -306,7 +300,7 @@ export default function Home() {
         {!selectedDate && !history.loading && (
           <div className="text-center py-12">
             <p className="text-stone-500 text-lg">
-              Select a date from the calendar above to uncover a moment in history.
+              Select a date from the calendar above to uncover something strange.
             </p>
           </div>
         )}
@@ -315,7 +309,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-stone-800 py-4 mt-auto">
         <div className="max-w-4xl mx-auto px-4 text-center text-stone-600 text-sm">
-          Built with Kajiro IQ Pro | Powered by Anthropic Claude
+          Built with Kajiro IQ Pro | Powered by Anthropic Claude | Strange History Edition
         </div>
       </footer>
     </div>

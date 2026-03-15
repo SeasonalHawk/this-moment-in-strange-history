@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://thismomentinhistory.com'),
-  title: "This Moment in History",
-  description: "Pick a date. Step into the past. AI-powered historical storytelling with voice narration.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://thismomentinstrangehistory.com'),
+  title: "This Moment in Strange History",
+  description: "Pick a date. Discover the weird. AI-powered strange history storytelling with voice narration.",
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '16x16 32x32 48x48' },
@@ -28,15 +28,15 @@ export const metadata: Metadata = {
   },
   manifest: '/site.webmanifest',
   openGraph: {
-    title: 'This Moment in History',
-    description: 'Pick a date. Step into the past. AI-powered historical storytelling with voice narration.',
+    title: 'This Moment in Strange History',
+    description: 'Pick a date. Discover the weird. AI-powered strange history storytelling with voice narration.',
     images: [{ url: '/logo-full.png', width: 1456, height: 816 }],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'This Moment in History',
-    description: 'Pick a date. Step into the past. AI-powered historical storytelling with voice narration.',
+    title: 'This Moment in Strange History',
+    description: 'Pick a date. Discover the weird. AI-powered strange history storytelling with voice narration.',
     images: ['/logo-full.png'],
   },
 };

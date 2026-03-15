@@ -1,28 +1,25 @@
 /**
  * Themed loading messages for each pipeline phase.
  *
- * Phase 1 (story generation): archive / discovery theme
- * Phase 2 (audio narration): Voyagers!-inspired time-travel adventure theme
- *
- * Future: each message will be paired with a pre-generated Midjourney image
- * stored in public/loading/ (Phase 2 of Issue #2).
+ * Phase 1 (story generation): eerie investigation / archive theme
+ * Phase 2 (audio narration): paranormal / strange discovery theme
  */
 
 export const STORY_PHASE_MESSAGES = [
-  'Searching the archives...',
-  'Consulting the scrolls...',
-  'Dusting off the records...',
-  'Decoding an ancient manuscript...',
-  'Opening the vault of forgotten stories...',
+  'Searching the forbidden archives...',
+  'Dusting off a classified file...',
+  'Decoding a strange manuscript...',
+  'Opening the vault of forgotten oddities...',
+  'Something stirs in the historical record...',
 ];
 
 export const AUDIO_PHASE_MESSAGES = [
-  'The Omni is locked on — engaging time coordinates...',
-  'Firing up the time machine...',
-  'The pilot is charting a course through history...',
-  'Calibrating the temporal compass...',
-  'Spinning up the portal — adventure awaits...',
-  'The green light is flashing — history needs us...',
+  'The signal is coming through — brace yourself...',
+  'Tuning into a frequency from the past...',
+  'The recording device is picking something up...',
+  'A voice from another time is emerging...',
+  'The static is clearing — listen closely...',
+  'Something wants to be heard...',
 ];
 
 /** Pick a random element from a non-empty array. */

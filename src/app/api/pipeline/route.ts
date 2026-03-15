@@ -6,7 +6,7 @@ import { HISTORY_SYSTEM_PROMPT, VIGNETTE_TOOL, STORY_MODEL } from '@/lib/prompts
 
 const ELEVENLABS_VOICE_ID = 'pNInz6obpgDQGcFmaJgB'; // Adam
 const ELEVENLABS_MODEL = 'eleven_flash_v2_5'; // Fastest English model
-const BRANDING_OUTRO = 'This audio is created by This Moment in History. Copyright 2026.';
+const BRANDING_OUTRO = 'This audio is created by This Moment in Strange History. Copyright 2026.';
 
 /**
  * Unified streaming pipeline: story generation → TTS → NDJSON response.
