@@ -6,11 +6,12 @@ import 'react-day-picker/style.css';
 interface CalendarPickerProps {
   selectedDate: Date | undefined;
   onDateSelect: (date: Date | undefined) => void;
+  disabled?: boolean;
 }
 
-export default function CalendarPicker({ selectedDate, onDateSelect }: CalendarPickerProps) {
+export default function CalendarPicker({ selectedDate, onDateSelect, disabled = false }: CalendarPickerProps) {
   return (
-    <div className="flex justify-center">
+    <div className={`flex justify-center ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
       <DayPicker
         mode="single"
         selected={selectedDate}

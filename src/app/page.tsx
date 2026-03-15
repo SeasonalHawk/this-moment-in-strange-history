@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
 import CalendarPicker from '@/components/CalendarPicker';
 import StoryCard from '@/components/StoryCard';
@@ -31,6 +31,36 @@ export default function Home() {
   const history = useHistoryStory();
   const tts = useTextToSpeech();
   const bgMusic = useBackgroundMusic();
+
+  // Keep stable refs to cleanup functions so the event listeners
+  // don't need to re-register on every render.
+  const ttsCleanupRef = useRef(tts.cleanup);
+  const bgStopRef = useRef(bgMusic.stop);
+  ttsCleanupRef.current = tts.cleanup;
+  bgStopRef.current = bgMusic.stop;
+
+  // Stop audio and abort pipelines when the page is closed or hidden.
+  // - pagehide: fires reliably on tab close / navigation (modern replacement for beforeunload)
+  // - visibilitychange: fires on tab switch, minimize, mobile app-switch
+  useEffect(() => {
+    const teardown = () => {
+      if (abortRef.current) abortRef.current.abort();
+      ttsCleanupRef.current();
+      bgStopRef.current();
+    };
+
+    const handlePageHide = () => teardown();
+    const handleVisChange = () => {
+      if (document.visibilityState === 'hidden') teardown();
+    };
+
+    window.addEventListener('pagehide', handlePageHide);
+    document.addEventListener('visibilitychange', handleVisChange);
+    return () => {
+      window.removeEventListener('pagehide', handlePageHide);
+      document.removeEventListener('visibilitychange', handleVisChange);
+    };
+  }, []);
 
   /**
    * Unified streaming pipeline: calls /api/pipeline which returns NDJSON.
@@ -193,12 +223,13 @@ export default function Home() {
   }, [tts, bgMusic, history]);
 
   const handleDateSelect = async (date: Date | undefined) => {
+    if (pipelineStart) return; // Block clicks while pipeline is running
     setSelectedDate(date);
-    if (date) await runPipeline(date);
+    if (date) await runPipeline(date, getRandomGenre());
   };
 
   const handleRandomHistory = async () => {
-    if (!selectedDate) return;
+    if (!selectedDate || pipelineStart) return;
     await runPipeline(selectedDate, getRandomGenre());
   };
 
@@ -214,6 +245,18 @@ export default function Home() {
   const handleReplay = () => {
     tts.replay();
     bgMusic.play();
+  };
+
+  const handleCloseStory = () => {
+    if (abortRef.current) abortRef.current.abort();
+    tts.cleanup();
+    bgMusic.stop();
+    history.setErrorState(''); // Clear story state
+    setSelectedDate(undefined);
+    setPipelineStart(null);
+    setPhases([]);
+    setTiming({ storyMs: null, audioMs: null });
+    setCostData(null);
   };
 
   return (
@@ -236,6 +279,7 @@ export default function Home() {
         <CalendarPicker
           selectedDate={selectedDate}
           onDateSelect={handleDateSelect}
+          disabled={pipelineStart !== null || history.story !== null}
         />
 
         {/* Story Area — both cards persist in DOM once pipeline starts */}
@@ -281,7 +325,8 @@ export default function Home() {
             hasAudio={tts.hasAudio}
             musicMuted={bgMusic.muted}
             onToggleMusic={bgMusic.toggleMute}
-            autoExpand={tts.playing}
+            autoExpand={tts.hasAudio}
+            onClose={handleCloseStory}
             timingLabel={
               timing.storyMs !== null && timing.audioMs !== null
                 ? `Story ${formatMs(timing.storyMs)} · Narration ${formatMs(timing.audioMs)} · Total ${formatMs(timing.storyMs + timing.audioMs)}${

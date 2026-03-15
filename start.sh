@@ -9,7 +9,7 @@ set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PID_FILE="$PROJECT_DIR/.dev.pid"
 LOG_FILE="$PROJECT_DIR/.dev.log"
-PORT=3000
+PORT="${STRANGE_HISTORY_PORT:-3001}"
 
 # ── Cleanup from previous session ────────────────
 # Always run full cleanup on startup in case of prior crash,
@@ -73,7 +73,7 @@ fi
 # ── Background mode ─────────────────────────────
 if [[ "${1:-}" == "--bg" ]]; then
   echo "🚀 Starting dev server in background on port $PORT..."
-  nohup pnpm dev > "$LOG_FILE" 2>&1 &
+  nohup pnpm dev -p "$PORT" > "$LOG_FILE" 2>&1 &
   DEV_PID=$!
   echo "$DEV_PID" > "$PID_FILE"
 
@@ -107,4 +107,4 @@ echo ""
 echo "$$" > "$PID_FILE"
 trap 'rm -f "$PID_FILE"; echo ""; echo "👋 Server stopped"' EXIT INT TERM
 
-exec pnpm dev
+exec pnpm dev -p "$PORT"

@@ -17,8 +17,12 @@ const pageSource = fs.readFileSync(
 );
 
 describe('useBackgroundMusic: audio source', () => {
-  it('uses Chronostream Runner as background music', () => {
-    expect(hookSource).toContain("'/audio/chronostream-runner.mp3'");
+  it('uses This Moment Is Wrong Somehow as background music', () => {
+    expect(hookSource).toContain("'/audio/this-moment-is-wrong-somehow.mp3'");
+  });
+
+  it('does NOT reference old chronostream-runner.mp3', () => {
+    expect(hookSource).not.toContain('chronostream-runner.mp3');
   });
 
   it('does NOT reference old ambient-bg.mp3', () => {
@@ -28,7 +32,7 @@ describe('useBackgroundMusic: audio source', () => {
 
 describe('useBackgroundMusic: volume and fade config', () => {
   it('TARGET_VOLUME is set to 0.12 for the fuller track', () => {
-    expect(hookSource).toContain('TARGET_VOLUME = 0.12');
+    expect(hookSource).toContain('TARGET_VOLUME = 0.17');
   });
 
   it('FADE_IN_MS is defined for fade-in duration', () => {
@@ -233,7 +237,7 @@ describe('useBackgroundMusic: Audio element behavior (mock)', () => {
     // Dynamically import to get a fresh module with our mock
     const mod = await import('../hooks/useBackgroundMusic');
     // The module exports the hook — we can verify the URL constant is correct
-    expect(hookSource).toContain("'/audio/chronostream-runner.mp3'");
+    expect(hookSource).toContain("'/audio/this-moment-is-wrong-somehow.mp3'");
   });
 
   it('audio preload is set to auto for eager loading', () => {

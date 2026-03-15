@@ -8,8 +8,9 @@ An AI-powered strange history storytelling app with voice narration. Pick any ca
 2. **Read** the AI-generated creative nonfiction vignette
 3. **Listen** — narration auto-generates with Adam's voice and Voyagers!-themed accompaniment
 4. **Control** — Play/Pause, Replay, Download MP3, Mute Music
-5. **Discover** — click "Random History" for a strange genre-themed story (Cryptids, Cursed Objects, Bizarre Deaths, and 17 more)
-6. **Download** the audio as an MP3 (includes branding outro)
+5. **Discover** — click "Strange Encounter" for a new genre-themed story on the same date (Cryptids, Cursed Objects, Bizarre Deaths, and 17 more)
+6. **Close** — click X to dismiss the story, reset the app, and pick a new date
+7. **Download** the audio as an MP3 (includes branding outro)
 
 ## Tech Stack
 
@@ -19,7 +20,7 @@ An AI-powered strange history storytelling app with voice narration. Pick any ca
 | Styling | Tailwind CSS 4 |
 | AI Storytelling | Anthropic Claude API (`claude-haiku-4-5-20251001`) |
 | Voice Narration | ElevenLabs TTS API (Adam voice, Flash v2.5) |
-| Background Music | Voyagers!-themed ambient soundtrack (Chronostream Runner, static asset) |
+| Background Music | This Moment Is Wrong Somehow — Strange History ambient soundtrack (static asset) |
 | Calendar | react-day-picker, date-fns |
 | Testing | Vitest, React Testing Library |
 | Prompt Framework | Kajiro IQ Pro |
@@ -46,7 +47,7 @@ Start the dev server:
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3001](http://localhost:3001)
 
 ## Project Structure
 
@@ -54,7 +55,7 @@ Open [http://localhost:3000](http://localhost:3000)
 this-moment-in-strange-history/
 ├── public/
 │   ├── audio/
-│   │   └── chronostream-runner.mp3   # Voyagers!-themed background music (static asset)
+│   │   └── this-moment-is-wrong-somehow.mp3  # Strange History ambient background music (static asset)
 │   ├── logo-full.png                 # Midjourney cinematic logo (header, OG, social)
 │   ├── logo-icon.png                 # Midjourney app icon (1024x1024, favicon source)
 │   ├── logo.svg                      # Flat SVG timeline motif (inline/themeable)
@@ -77,9 +78,9 @@ this-moment-in-strange-history/
 │   │   ├── CalendarPicker.tsx         # Date picker (react-day-picker, amber theme)
 │   │   ├── Collapsible.tsx            # Reusable accordion with locked (system-controlled) mode
 │   │   ├── LoadingState.tsx           # Multi-phase loading indicator with live timers
-│   │   └── StoryCard.tsx              # Story display + audio controls + timing + cost estimate
+│   │   └── StoryCard.tsx              # Story display + audio controls + timing + cost + close button
 │   ├── hooks/
-│   │   ├── useBackgroundMusic.ts      # Voyagers! music — fade-in/out, warmUp, mute toggle
+│   │   ├── useBackgroundMusic.ts      # Voyagers! music — fade-in/out, warmUp, mute toggle (17% volume)
 │   │   ├── useHistoryStory.ts         # Story state + pipeline helpers (startLoading, setResult)
 │   │   └── useTextToSpeech.ts         # TTS playback, warmUp, playBlob, download, lifecycle
 │   ├── lib/
@@ -99,13 +100,16 @@ this-moment-in-strange-history/
 │       ├── LoadingState.test.tsx      # 14 tests — phases, timers, auto-expand/collapse, locked
 │       ├── pipelineConfig.test.ts     # 16 tests — pipeline models (Haiku + Flash), shared prompt
 │       ├── rateLimit.test.ts          # 15 tests — allow/block, per-IP tracking, window reset
-│       ├── StoryCard.test.tsx         # 36 tests — rendering, audio, genre, controls, accordion
+│       ├── StoryCard.test.tsx         # 36 tests — rendering, audio, genre, controls, close, accordion
 │       ├── ttsRoute.test.ts           # 16 tests — TTS validation, voice config (Flash v2.5)
 │       ├── useBackgroundMusic.test.ts # 36 tests — audio source, warmUp, fade-in/out, cleanup
-│       └── validation.test.ts         # 18 tests — input validation, monthName, buildUserMessage
+│       ├── validation.test.ts         # 18 tests — input validation, monthName, buildUserMessage
+│       └── apiKeyValidation.test.ts   # 20 tests — API key validation across all endpoints
+├── docs/
+│   └── procedure-calendar-lock-and-reset.md  # Portable pattern for calendar lock + full app reset
 ├── .env.local                         # API keys (gitignored)
 ├── start.sh                           # Dev server launcher (pnpm dev)
-├── stop.sh                            # Dev server stopper (kills port 3000)
+├── stop.sh                            # Dev server stopper (kills port 3001)
 ├── vercel.json                        # Security headers (CSP, HSTS, X-Frame-Options)
 ├── vitest.config.ts                   # Test configuration
 └── package.json
@@ -155,11 +159,11 @@ Added subtle ambient music that plays during narration.
 - Mute only affects volume — does not start or stop playback independently
 - 61 tests passing
 
-### MVP 4 — Random History (March 14, 2026)
+### MVP 4 — Strange Encounter (March 14, 2026)
 
 Added genre-based discovery — explore history through thematic lenses.
 
-- "Random History" button replaces "Spin Your Luck" — picks a random date and genre
+- "Strange Encounter" button replaces "Spin Your Luck" — same date, random genre
 - 20 curated strange history genres: Unexplained Disappearances, Mass Hysteria & Panic, Cursed Objects & Places, Bizarre Deaths, Cryptids & Creature Sightings, Paranormal Investigations, Medical Oddities, Strange Weather & Natural Anomalies, Eerie Coincidences, Forgotten Experiments, Bizarre Laws & Trials, Haunted History, Strange Crimes, Mysterious Signals & Messages, Doomsday Predictions & Cults, Time Slips & Glitches, Odd Traditions & Rituals, Weird Science, Lost Civilizations & Ruins, Unsolved Mysteries
 - Genre used as thematic lens for AI story generation via Kajiro IQ Pro prompting
 - Genre badge displayed on story card
@@ -266,6 +270,20 @@ Professional branding, PWA support, and social sharing metadata.
 - **Bug fixes** — metadataBase warning resolved (see [#23](https://github.com/SeasonalHawk/this-moment-in-history/issues/23)-[#29](https://github.com/SeasonalHawk/this-moment-in-history/issues/29)), branding implementation (see [#31](https://github.com/SeasonalHawk/this-moment-in-history/issues/31))
 - 214 tests passing
 
+### v1.1.0 — Calendar Lock, Close Button & Browser Cleanup (March 15, 2026)
+
+UX polish — calendar lock, full app reset, and browser cleanup.
+
+- **Calendar close-gated lock** — calendar disables when a story loads, only re-enables when the user clicks X (close button). No other button or playback state controls the lock.
+- **X close button** on StoryCard — aborts pipeline, stops audio/music, clears all state, deselects date, returns app to initial "pick a date" state
+- **"Strange Encounter" rebrand** — renamed from "Random History". Uses same date with a random genre (genre IS the randomness)
+- **Genre on every story** — both initial date pick and Strange Encounter always assign a random genre badge
+- **Browser tab close cleanup** — `pagehide` + `visibilitychange` events abort pipelines and stop all audio when the tab closes or hides
+- **Stable cleanup refs** — `useRef` pattern prevents event listeners from re-registering on every render
+- **Portable procedure doc** — `docs/procedure-calendar-lock-and-reset.md` for porting the calendar lock + reset pattern to other projects
+- **API key validation tests** — new `apiKeyValidation.test.ts` covering all 3 endpoints
+- 234 tests passing (14 test files)
+
 ## API Token Costs
 
 Every request to the app makes two API calls: one to Anthropic (story generation) and one to ElevenLabs (voice narration). Here's the full cost breakdown.
@@ -351,14 +369,15 @@ ElevenLabs pricing varies by plan:
 ## Testing
 
 ```bash
-pnpm test          # Run all 214+ tests
+pnpm test          # Run all 234 tests
 pnpm test:watch    # Watch mode
 ```
 
 | Test File | Tests | Coverage |
 |-----------|-------|----------|
 | useBackgroundMusic.test.ts | 36 | Audio source, warmUp, fade-in/out, mute, cleanup, page integration |
-| StoryCard.test.tsx | 36 | Rendering, audio controls, genre badge, download, music toggle, accordion |
+| StoryCard.test.tsx | 36 | Rendering, audio controls, genre badge, download, music toggle, close, accordion |
+| apiKeyValidation.test.ts | 20 | API key validation across all 3 endpoints |
 | Collapsible.test.tsx | 20 | Accordion toggle, locked mode, aria attrs, chevron rotation, opacity |
 | validation.test.ts | 18 | Input validation, monthName, buildUserMessage, genre validation |
 | ttsRoute.test.ts | 16 | TTS validation, voice config (Flash v2.5), voice settings |
@@ -392,6 +411,7 @@ MVP 9 brought the Voyagers!-themed Chronostream Runner soundtrack with professio
 | MVP 7 + MVP 8 complete | — | March 14, 2026 (same session) |
 | MVP 9 + MVP 10 complete | — | March 15, 2026 |
 | v1.0.0 (branding + metadata) | — | March 15, 2026 |
+| v1.1.0 (calendar lock + close + cleanup) | — | March 15, 2026 |
 | Total time | 8-11 hrs | ~8 hrs |
 | Built with | — | Claude Code + Kajiro IQ Pro |
 

@@ -27,8 +27,8 @@ describe('StoryCard', () => {
     expect(screen.getByText(/The smoke rises above the battlefield/)).toBeInTheDocument();
   });
 
-  it('renders the formatted date', () => {
-    render(<StoryCard {...defaultProps} />);
+  it('renders the formatted date when audio is ready', () => {
+    render(<StoryCard {...defaultProps} hasAudio={true} />);
     expect(screen.getByText('March 4')).toBeInTheDocument();
   });
 
@@ -55,16 +55,16 @@ describe('StoryCard', () => {
     expect(screen.queryByText('Reference')).not.toBeInTheDocument();
   });
 
-  // Random History button tests
-  it('renders Random History button', () => {
+  // Strange Encounter button tests
+  it('renders Strange Encounter button', () => {
     render(<StoryCard {...defaultProps} />);
-    expect(screen.getByText('Random History')).toBeInTheDocument();
+    expect(screen.getByText('Strange Encounter')).toBeInTheDocument();
   });
 
   it('calls onRandomHistory when button clicked', () => {
     const onRandomHistory = vi.fn();
     render(<StoryCard {...defaultProps} onRandomHistory={onRandomHistory} />);
-    fireEvent.click(screen.getByText('Random History'));
+    fireEvent.click(screen.getByText('Strange Encounter'));
     expect(onRandomHistory).toHaveBeenCalledOnce();
   });
 
@@ -89,13 +89,13 @@ describe('StoryCard', () => {
     expect(screen.getByText('Espionage & Spies')).toBeInTheDocument();
   });
 
-  // Audio controls — no audio state (auto-generating, only Random History visible)
+  // Audio controls — no audio state (auto-generating, only Strange Encounter visible)
   it('does not show audio controls when no audio', () => {
     render(<StoryCard {...defaultProps} hasAudio={false} />);
     expect(screen.queryByText('Pause')).not.toBeInTheDocument();
     expect(screen.queryByText('Play')).not.toBeInTheDocument();
     expect(screen.queryByText('Download')).not.toBeInTheDocument();
-    expect(screen.getByText('Random History')).toBeInTheDocument();
+    expect(screen.getByText('Strange Encounter')).toBeInTheDocument();
   });
 
   // Audio controls — after audio generated
@@ -189,7 +189,7 @@ describe('StoryCard', () => {
     const { container } = render(<StoryCard {...defaultProps} hasAudio={true} audioPlaying={true} />);
     expect(screen.getByText('Pause')).toBeInTheDocument();
     expect(screen.getByText('Download')).toBeInTheDocument();
-    expect(screen.getByText('Random History')).toBeInTheDocument();
+    expect(screen.getByText('Strange Encounter')).toBeInTheDocument();
     const replayButton = container.querySelector('button[title="Replay from start"]');
     expect(replayButton).toBeInTheDocument();
     const musicButton = container.querySelector('button[title*="background music"]');
@@ -216,11 +216,17 @@ describe('StoryCard', () => {
     expect(region.style.opacity).toBe('0');
   });
 
-  it('shows date and event title in header when collapsed', () => {
-    render(<StoryCard {...defaultProps} autoExpand={false} />);
-    // Header is always visible — event title appears in both header and body
+  it('shows date and event title in header when collapsed and audio ready', () => {
+    render(<StoryCard {...defaultProps} autoExpand={false} hasAudio={true} />);
+    // Header shows date + title only after audio is ready
     expect(screen.getByText('March 4')).toBeInTheDocument();
     expect(screen.getAllByText(/The Battle of Example/).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('shows loading state in header when collapsed and no audio', () => {
+    render(<StoryCard {...defaultProps} autoExpand={false} hasAudio={false} />);
+    expect(screen.getByText('Loading narration…')).toBeInTheDocument();
+    expect(screen.queryByText('March 4')).not.toBeInTheDocument();
   });
 
   it('shows "Loading narration…" when collapsed and no audio', () => {
@@ -228,8 +234,13 @@ describe('StoryCard', () => {
     expect(screen.getByText('Loading narration…')).toBeInTheDocument();
   });
 
-  it('does not show "Loading narration…" when expanded', () => {
+  it('shows "Loading narration…" in header when expanded but no audio', () => {
     render(<StoryCard {...defaultProps} autoExpand={true} hasAudio={false} />);
+    expect(screen.getByText('Loading narration…')).toBeInTheDocument();
+  });
+
+  it('does not show "Loading narration…" when audio is ready', () => {
+    render(<StoryCard {...defaultProps} autoExpand={true} hasAudio={true} />);
     expect(screen.queryByText('Loading narration…')).not.toBeInTheDocument();
   });
 

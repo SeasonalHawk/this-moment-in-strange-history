@@ -73,6 +73,9 @@ export default function useHistoryStory() {
   const startLoading = useCallback(() => {
     setLoading(true);
     setError(null);
+    setStory(null);
+    setMetadata(emptyMetadata);
+    setActiveGenre(null);
   }, []);
 
   const setResult = useCallback((data: { story: string; metadata: StoryMetadata; genre: string | null }) => {

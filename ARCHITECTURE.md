@@ -1,7 +1,7 @@
 # Architecture — Complete Technology Reference
 
 **This Moment in Strange History** — System Design & Technology Map
-By Kenneth Benavides | v1.0.0 | March 2026
+By Kenneth Benavides | v1.1.0 | March 2026
 
 ---
 
@@ -53,7 +53,7 @@ Every dependency was chosen for a specific reason. This table covers the full st
 
 | Asset | File | Purpose |
 |-------|------|---------|
-| **Background Music** | `public/audio/chronostream-runner.mp3` | Voyagers!-themed ambient soundtrack. Generated once via ElevenLabs Sound Effects, served as a static file — zero per-request cost. Loops at 12% volume with 2s fade-in and 3s fade-out. |
+| **Background Music** | `public/audio/this-moment-is-wrong-somehow.mp3` | Strange History ambient soundtrack. Served as a static file — zero per-request cost. Loops at 17% volume with 2s fade-in and 3s fade-out. |
 | **Cinematic Logo** | `public/logo-full.png` | Midjourney-generated logo displayed in header via `next/image` with `priority` preload. Also used for OG and Twitter social cards. |
 | **App Icon** | `public/logo-icon.png` | 1024x1024 Midjourney-generated icon. Source image for all favicon derivatives. |
 | **SVG Logo** | `public/logo.svg` | Flat timeline motif for inline/themeable use cases (not currently rendered in UI). |
@@ -69,7 +69,7 @@ Every dependency was chosen for a specific reason. This table covers the full st
 The complete request lifecycle from user click to audio playback:
 
 ```
-User clicks a date (or "Random History")
+User clicks a date (or "Strange Encounter")
     |
     v
 page.tsx: runPipeline(date, genre?)
@@ -121,7 +121,7 @@ User hears narration with background music.
     |-- LoadingState collapses (system-controlled)
     |-- StoryCard expands (system-controlled)
     |-- When narration ends: bgMusic.fadeOut() (3s fade)
-    |-- Controls: Play/Pause, Replay, Download MP3, Mute Music, Random History
+    |-- Controls: Play/Pause, Replay, Download MP3, Mute Music, Strange Encounter, Close (X)
 ```
 
 ---
@@ -198,7 +198,7 @@ Converts text to speech. Returns raw audio bytes (`audio/mpeg`).
 ```
 <Home>  (page.tsx — client component, pipeline orchestrator)
   |
-  |-- <CalendarPicker>                  Props: selectedDate, onDateSelect
+  |-- <CalendarPicker>                  Props: selectedDate, onDateSelect, disabled
   |     Uses: react-day-picker, date-fns
   |
   |-- <LoadingState>                    Props: phases[], pipelineStart, autoExpand, autoCollapse
@@ -208,8 +208,8 @@ Converts text to speech. Returns raw audio bytes (`audio/mpeg`).
   |     Persists in DOM once pipeline starts (never unmounted)
   |
   |-- <StoryCard>                       Props: story, date, eventTitle, eventYear, mlaCitation,
-  |     |-- <Collapsible locked>              genre, audio controls, timing, autoExpand
-  |     |     Header: date + event title + loading indicator
+  |     |-- <Collapsible locked>              genre, audio controls, timing, autoExpand, onClose
+  |     |     Header: date + event title + loading indicator + X close button
   |     |     Body: genre badge, event header, story text, MLA citation,
   |     |           audio controls (play/pause, replay, download),
   |     |           music toggle, timing label + cost estimate
@@ -270,7 +270,7 @@ State is separated into three independent hooks. Each manages one concern and ex
 | Method | Purpose |
 |--------|---------|
 | `warmUp()` | Create Audio element during user click (autoplay policy) |
-| `play()` | Start from beginning with 2s fade-in to 12% volume |
+| `play()` | Start from beginning with 2s fade-in to 17% volume |
 | `fadeOut()` | 3s fade from current volume to 0, then pause + reset |
 | `stop()` | Immediate pause + reset (pipeline restart) |
 | `pause()` / `resume()` | Sync with narrator play/pause |
@@ -298,6 +298,9 @@ State is separated into three independent hooks. Each manages one concern and ex
 | **Genre as Lens** | `buildUserMessage()` with genre | Genre shapes the story angle, not a database filter. Same date can yield 20 different stories. All historically accurate regardless of genre. |
 | **Derived State** | `const expanded = autoExpand` | No internal useState for expand/collapse. Component state is directly derived from props. Eliminates sync bugs between parent and child state. |
 | **Server-Side Overlap** | Pipeline route (story then TTS) | TTS fires immediately after Claude responds — zero client round-trip between phases. Saves 100-200ms plus architectural complexity. |
+| **Close-Gated Calendar Lock** | CalendarPicker `disabled` prop | Calendar locks when story exists, only unlocks via X close button. Simpler than tying lock to playback signals — single unlock mechanism. |
+| **Full App Reset** | `handleCloseStory` in `page.tsx` | Abort pipeline, stop audio/music, clear all state, deselect date. Every state category reset in one handler. |
+| **Browser Teardown** | `pagehide` + `visibilitychange` | Stops audio and aborts pipelines when user closes tab or switches away. Uses `useRef` for stable cleanup function references. |
 
 ---
 
@@ -382,11 +385,11 @@ Every source file with its purpose:
 | `src/app/api/pipeline/route.ts` | Unified streaming endpoint — Claude story + ElevenLabs TTS in one NDJSON response |
 | `src/app/api/history/route.ts` | Standalone story generation endpoint (fallback) |
 | `src/app/api/tts/route.ts` | Standalone text-to-speech endpoint (fallback) |
-| `src/components/CalendarPicker.tsx` | Date picker — react-day-picker with amber/stone dark theme |
+| `src/components/CalendarPicker.tsx` | Date picker — react-day-picker with amber/stone dark theme, close-gated disabled prop |
 | `src/components/Collapsible.tsx` | Reusable accordion — interactive or locked mode, measured scrollHeight animation |
 | `src/components/LoadingState.tsx` | Multi-phase loading indicator — themed messages, live elapsed timers, locked Collapsible |
-| `src/components/StoryCard.tsx` | Story display — genre badge, audio controls, MLA citation, timing + cost, locked Collapsible |
-| `src/hooks/useBackgroundMusic.ts` | Voyagers! music — fade-in/out, warmUp, mute toggle, sync with narrator |
+| `src/components/StoryCard.tsx` | Story display — genre badge, audio controls, MLA citation, timing + cost, close button, locked Collapsible |
+| `src/hooks/useBackgroundMusic.ts` | Background music — fade-in/out, warmUp, mute toggle, sync with narrator |
 | `src/hooks/useHistoryStory.ts` | Story state — fetchStory (standalone), startLoading/setResult/setErrorState (pipeline) |
 | `src/hooks/useTextToSpeech.ts` | TTS playback — warmUp, playBlob, speak, togglePlayPause, replay, download, cleanup |
 | `src/lib/costs.ts` | Cost estimation — Claude token pricing + ElevenLabs character pricing |
@@ -395,7 +398,7 @@ Every source file with its purpose:
 | `src/lib/prompts.ts` | Shared system prompt, `publish_vignette` tool definition, `STORY_MODEL` constant |
 | `src/lib/rateLimit.ts` | In-memory rate limiter — per-IP tracking, configurable window and max |
 | `src/lib/validation.ts` | Input validation — month, day, genre, monthName mapping, buildUserMessage |
-| `public/audio/chronostream-runner.mp3` | Voyagers!-themed background music (static asset, loops during narration) |
+| `public/audio/this-moment-is-wrong-somehow.mp3` | Strange History ambient background music (static asset, loops during narration) |
 | `public/logo-full.png` | Midjourney cinematic logo (header display, OG/Twitter social cards) |
 | `public/logo-icon.png` | Midjourney app icon (1024x1024, source for favicon derivatives) |
 | `public/logo.svg` | Flat SVG timeline motif (inline/themeable branding) |
@@ -403,8 +406,9 @@ Every source file with its purpose:
 | `public/apple-touch-icon.png` | 180px Apple touch icon (iOS home screen) |
 | `public/android-chrome-*.png` | 192px + 512px PWA icons (Android install) |
 | `public/site.webmanifest` | PWA manifest (standalone, amber theme, stone background) |
+| `docs/procedure-calendar-lock-and-reset.md` | Portable pattern for calendar lock + full app reset (porting guide) |
 | `start.sh` | Dev server launcher (runs `pnpm dev`) |
-| `stop.sh` | Dev server stopper (kills port 3000 process) |
+| `stop.sh` | Dev server stopper (kills port 3001 process) |
 | `vercel.json` | Security headers configuration (CSP, HSTS, X-Frame-Options, etc.) |
 | `vitest.config.ts` | Test configuration — jsdom environment, path aliases, React plugin |
 | `package.json` | Dependencies, scripts, pnpm packageManager declaration |
@@ -412,12 +416,12 @@ Every source file with its purpose:
 | `next.config.ts` | Next.js configuration |
 | `postcss.config.mjs` | PostCSS configuration for Tailwind CSS 4 |
 
-### Test Files (13 files, 214 tests)
+### Test Files (14 files, 234 tests)
 
 | File | Tests | What It Covers |
 |------|-------|---------------|
 | `useBackgroundMusic.test.ts` | 36 | Audio source, warmUp, fade-in/out timing, mute toggle, cleanup, page integration |
-| `StoryCard.test.tsx` | 36 | Story rendering, audio controls, genre badge, download, music toggle, locked accordion |
+| `StoryCard.test.tsx` | 36 | Story rendering, audio controls, genre badge, download, music toggle, close, locked accordion |
 | `Collapsible.test.tsx` | 20 | Interactive toggle, locked mode, aria attributes, chevron rotation, opacity transitions |
 | `validation.test.ts` | 18 | Month/day/genre validation, monthName mapping, buildUserMessage construction |
 | `ttsRoute.test.ts` | 16 | Voice ID (Adam), model (Flash v2.5), API URL, text validation, voice settings |
@@ -429,6 +433,7 @@ Every source file with its purpose:
 | `issueOneRegression.test.ts` | 10 | Architecture guards — warmUp, playBlob, pipeline helpers, handleEndedRef |
 | `loadingMessages.test.ts` | 10 | Message array integrity, pickRandom distribution, Voyagers! theme messages |
 | `genres.test.ts` | 5 | Genre list has 20 entries, all non-empty strings, getRandomGenre returns valid genre |
+| `apiKeyValidation.test.ts` | 20 | API key validation across all 3 endpoints (pipeline, history, tts) |
 
 ---
 
