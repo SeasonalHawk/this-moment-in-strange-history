@@ -2,7 +2,7 @@
 
 **Author:** Kenneth Benavides
 **Built with:** Claude Code + Kajiro IQ Pro
-**Version:** v1.0.0 (March 2026)
+**Version:** v1.1.0 (March 2026)
 
 ---
 
@@ -53,8 +53,10 @@ The technical goal was equally specific: build a production-quality AI applicati
 |-----------|-------------|
 | **Date-Based Storytelling** | Pick any date from the calendar. Receive a historically accurate creative nonfiction vignette set on that date. |
 | **Voice Narration** | Every story is automatically narrated by Adam -- a deep, authoritative voice via ElevenLabs TTS. |
-| **Voyagers! Music** | Chronostream Runner ambient soundtrack plays during narration at 12% volume with 2s fade-in and 3s fade-out. |
-| **Genre Discovery** | "Random History" picks a random date and applies one of 20 genre lenses (True Crime, Espionage, Science, Love, War, and 15 more). |
+| **Voyagers! Music** | Chronostream Runner ambient soundtrack plays during narration at 17% volume with 2s fade-in and 3s fade-out. |
+| **Genre Discovery** | "Strange Encounter" applies a random genre lens to the same date (Cryptids, Cursed Objects, Bizarre Deaths, and 17 more). Every story — both initial and Strange Encounter — gets a random genre. |
+| **Calendar Lock + Close** | Calendar disables once a story loads. X close button on StoryCard fully resets the app (abort pipeline, stop audio, clear state, deselect date). |
+| **Browser Cleanup** | Audio and pipelines automatically stop when the browser tab closes or hides (`pagehide` + `visibilitychange`). |
 | **Audio Controls** | Play/Pause, Replay from start, Download as MP3, Mute/Unmute background music. |
 | **System-Controlled Accordion** | LoadingState and StoryCard persist in DOM with choreographed expand/collapse transitions -- no user toggle, system controls visibility. |
 | **Real-Time Timing + Cost** | Pipeline timing breakdown and per-request cost estimation (Claude tokens + ElevenLabs characters) displayed on every story. |
@@ -113,7 +115,7 @@ Flash v2.5 generates audio for a 150-word story in approximately 5-8 seconds ver
 
 ### Background Music: Static Asset (Voyagers! Theme)
 
-**Why not generated per request:** The Chronostream Runner soundtrack is generated once via ElevenLabs Sound Effects API and saved as a static asset (`public/audio/chronostream-runner.mp3`). This means zero per-request cost, zero latency, and consistent audio across sessions. The music loops at 12% volume -- tuned for the fuller Voyagers!-themed orchestral track.
+**Why not generated per request:** The Chronostream Runner soundtrack is generated once via ElevenLabs Sound Effects API and saved as a static asset (`public/audio/chronostream-runner.mp3`). This means zero per-request cost, zero latency, and consistent audio across sessions. The music loops at 17% volume -- tuned for the fuller Voyagers!-themed orchestral track.
 
 **Why asymmetric fade:** Fade-in is 2 seconds, fade-out is 3 seconds. This mirrors broadcast audio practice -- listeners notice abrupt silence more than a slow swell. The longer fade-out creates a professional trail-off after the narration copyright outro finishes.
 
@@ -127,7 +129,7 @@ Flash v2.5 generates audio for a 150-word story in approximately 5-8 seconds ver
 
 ### Testing: Vitest + React Testing Library
 
-**Why Vitest over Jest:** Native TypeScript support, faster execution (2.5 seconds for 214 tests), and first-class Vite integration. The `jsdom` environment simulates browser APIs for component testing without a real browser.
+**Why Vitest over Jest:** Native TypeScript support, faster execution (2.5 seconds for 234 tests), and first-class Vite integration. The `jsdom` environment simulates browser APIs for component testing without a real browser.
 
 **Why React Testing Library:** Tests user-visible behavior, not implementation details. Tests query by text content ("Random History", "Pause"), not by CSS classes or component internals.
 
@@ -138,7 +140,7 @@ Flash v2.5 generates audio for a 150-word story in approximately 5-8 seconds ver
 ### Data Flow
 
 ```
-User clicks a date (or "Random History")
+User clicks a date (or "Strange Encounter")
     |
     v
 page.tsx: runPipeline(date, genre?)
@@ -187,7 +189,7 @@ page.tsx (client reads NDJSON stream):
     v
 User hears narration with Voyagers! background music.
     |-- When narration ends: bgMusic.fadeOut() (3s fade)
-    |-- Controls: Play/Pause, Replay, Download, Mute Music, Random History
+    |-- Controls: Play/Pause, Replay, Download, Mute Music, Strange Encounter, Close (X)
     |-- Timing + cost estimate displayed on StoryCard
 ```
 
@@ -301,7 +303,7 @@ The system prompt is a 400+ word instruction set that enforces a specific litera
 
 ### Genre System
 
-When "Random History" is clicked, one of 20 curated genres is applied as a thematic lens:
+Every story gets a random genre. When "Strange Encounter" is clicked, the same date gets a new random genre. The 20 curated genres serve as thematic lenses:
 
 > Unexplained Disappearances, Mass Hysteria & Panic, Cursed Objects & Places, Bizarre Deaths, Cryptids & Creature Sightings, Paranormal Investigations, Medical Oddities, Strange Weather & Natural Anomalies, Eerie Coincidences, Forgotten Experiments, Bizarre Laws & Trials, Haunted History, Strange Crimes, Mysterious Signals & Messages, Doomsday Predictions & Cults, Time Slips & Glitches, Odd Traditions & Rituals, Weird Science, Lost Civilizations & Ruins, Unsolved Mysteries
 
@@ -402,7 +404,7 @@ Each MVP produces a *working application*. If development stopped at MVP 1, you'
 | 1 | Core Story Engine | Calendar + AI stories + citations | Claude tool_use for structured output |
 | 2 | Voice Narration | ElevenLabs TTS + play/stop | Audio element lifecycle management |
 | 3 | Background Music | Ambient piano loop + mute toggle | Static asset (zero per-request cost) |
-| 4 | Random History | 20 genre lenses + random date | Genre as prompt modifier, not data filter |
+| 4 | Strange Encounter | 20 genre lenses + same date | Genre as prompt modifier, not data filter |
 | 5 | Auto-TTS Pipeline | Automatic audio generation | Unified pipeline replacing manual buttons |
 | 6 | Autoplay Fix + Timing | Browser autoplay compliance + timers | `warmUp()` pattern + `useRef` for timing |
 | 7 | Efficiency Review | Bug fixes + code cleanup | `handleEndedRef` identity fix, dead prop removal |
@@ -410,12 +412,13 @@ Each MVP produces a *working application*. If development stopped at MVP 1, you'
 | 9 | Voyagers! Music | Themed soundtrack + cost estimation | Asymmetric fade, bgMusic warmUp, themed loading messages |
 | 10 | System-Controlled Accordion | Persistent DOM cards + locked Collapsible | Derived state from props, non-interactive headers |
 | v1.0.0 | Branding & Metadata | Midjourney logo, favicons, PWA, OG/Twitter cards | Hybrid branding (PNG raster + SVG inline), `next/image` with priority |
+| v1.1.0 | Calendar Lock + Close + Cleanup | Close-gated calendar, X button, browser teardown | Single unlock mechanism, `pagehide`/`visibilitychange` for tab close |
 
 ### How Each Layer Built on the Last
 
 MVP 1 established the data model (story + metadata). MVP 2 consumed that data model for narration. MVP 3 synced with MVP 2's playback events. MVP 4 extended MVP 1's API with genre support. MVP 5 unified MVPs 1-4 into an automatic pipeline. MVP 6 fixed a browser-level bug from MVP 5. MVP 7 cleaned up technical debt from MVPs 1-6. MVP 8 replaced the sequential architecture from MVP 5 with a streaming pipeline. MVP 9 replaced the ambient piano with the Voyagers!-themed Chronostream Runner and added cost transparency. MVP 10 introduced the locked Collapsible pattern and made cards persist in the DOM permanently.
 
-Each MVP's interface contract was preserved. `StoryCard` still accepts the same props it has since MVP 6 (plus `autoExpand` from MVP 10). `useTextToSpeech` still exposes `speak()` even though the pipeline now uses `playBlob()`. Backward compatibility was maintained at every layer.
+Each MVP's interface contract was preserved. `StoryCard` still accepts the same props it has since MVP 6 (plus `autoExpand` from MVP 10, `onClose` from v1.1.0). `useTextToSpeech` still exposes `speak()` even though the pipeline now uses `playBlob()`. Backward compatibility was maintained at every layer.
 
 ---
 
@@ -461,12 +464,12 @@ Deployed via `vercel.json`:
 
 ## Testing Strategy
 
-### 214 Tests Across 13 Test Files
+### 214 Tests Across 14 Test Files
 
 | File | Tests | What It Covers |
 |------|-------|----------------|
 | `useBackgroundMusic.test.ts` | 36 | Audio source, warmUp, fade-in/out timing, mute toggle, cleanup, page integration |
-| `StoryCard.test.tsx` | 36 | Story rendering, audio controls, genre badge, download, music toggle, locked accordion |
+| `StoryCard.test.tsx` | 36 | Story rendering, audio controls, genre badge, download, music toggle, close, locked accordion |
 | `Collapsible.test.tsx` | 20 | Interactive toggle, locked mode, aria attributes, chevron rotation, opacity transitions |
 | `validation.test.ts` | 18 | Input validation for month, day, genre. Month name mapping. User message construction with and without genre. |
 | `ttsRoute.test.ts` | 16 | Voice ID (Adam), model (Flash v2.5), API URL, text validation, voice settings |
@@ -478,6 +481,7 @@ Deployed via `vercel.json`:
 | `issueOneRegression.test.ts` | 10 | Architecture guards -- warmUp, playBlob, pipeline helpers, handleEndedRef |
 | `loadingMessages.test.ts` | 10 | Message array integrity, pickRandom distribution, Voyagers! theme messages |
 | `genres.test.ts` | 5 | Genre list integrity, random selection |
+| `apiKeyValidation.test.ts` | 20 | API key validation across all 3 endpoints |
 
 ### Testing Philosophy
 
@@ -485,7 +489,7 @@ Tests verify user-visible behavior, not implementation details:
 
 ```typescript
 // Good: tests what the user sees
-expect(screen.getByText('Random History')).toBeInTheDocument();
+expect(screen.getByText('Strange Encounter')).toBeInTheDocument();
 
 // Good: tests interaction behavior
 fireEvent.click(screen.getByText('Pause'));
@@ -525,13 +529,13 @@ ELEVENLABS_API_KEY=your-elevenlabs-key
 ### Run
 
 ```bash
-pnpm dev           # Start development server on http://localhost:3000
-pnpm test          # Run all 214 tests
+pnpm dev           # Start development server on http://localhost:3001
+pnpm test          # Run all 234 tests
 pnpm build         # Production build
 
 # Or use convenience scripts:
 ./start.sh         # Launches pnpm dev in background
-./stop.sh          # Kills process on port 3000
+./stop.sh          # Kills process on port 3001
 ```
 
 ### Optional Configuration
@@ -576,7 +580,7 @@ Edit `src/lib/prompts.ts` for the system prompt, or the model string in:
 
 1. Replace `public/audio/chronostream-runner.mp3` with your audio file
 2. Ensure it loops cleanly (the `<audio>` element has `loop: true`)
-3. Adjust `TARGET_VOLUME` in `src/hooks/useBackgroundMusic.ts` (currently 0.12 for the fuller orchestral track -- simpler tracks may work better at higher volumes)
+3. Adjust `TARGET_VOLUME` in `src/hooks/useBackgroundMusic.ts` (currently 0.17 for the Strange History ambient track -- simpler tracks may work better at higher volumes)
 4. Test fade-in/out durations -- `FADE_IN_MS` and `FADE_OUT_MS` may need tuning for different track characters
 
 ---
