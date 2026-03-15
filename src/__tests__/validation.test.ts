@@ -11,10 +11,10 @@ describe('validateRequest', () => {
   });
 
   it('accepts valid input with genre', () => {
-    const result = validateRequest({ month: 3, day: 13, genre: 'True Crime' });
+    const result = validateRequest({ month: 3, day: 13, genre: 'Strange Crimes' });
     expect(result.valid).toBe(true);
     if (result.valid) {
-      expect(result.data).toEqual({ month: 3, day: 13, genre: 'True Crime' });
+      expect(result.data).toEqual({ month: 3, day: 13, genre: 'Strange Crimes' });
     }
   });
 
